@@ -1,4 +1,4 @@
-package in.mustafa.wrapper;
+package in.healthconnect.wrapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
