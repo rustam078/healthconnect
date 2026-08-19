@@ -1,7 +1,7 @@
-package in.mustafa.entity;
+package in.healthconnect.entity;
 
-import in.mustafa.entity.enums.BloodGroup;
-import in.mustafa.entity.enums.Gender;
+import in.healthconnect.entity.enums.BloodGroup;
+import in.healthconnect.entity.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
