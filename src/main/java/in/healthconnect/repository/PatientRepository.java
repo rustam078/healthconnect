@@ -1,6 +1,6 @@
-package in.mustafa.repository;
+package in.healthconnect.repository;
 
-import in.mustafa.entity.Patient;
+import in.healthconnect.entity.Patient;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PatientRepository extends JpaRepository<Patient, Integer> {

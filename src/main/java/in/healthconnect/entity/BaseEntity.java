@@ -1,4 +1,4 @@
-package in.mustafa.entity;
+package in.healthconnect.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package in.mustafa.entity.enums;
+package in.healthconnect.entity.enums;
 
 public enum Gender {
 MALE,
