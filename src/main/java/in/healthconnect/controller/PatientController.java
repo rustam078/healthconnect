@@ -33,9 +33,9 @@ public class PatientController {
     @GetMapping
     public ResponseEntity<ApiResponse< Page<PatientResponse>>>
     getAllPatientOnPage( @PageableDefault(page = 0, size=20, sort="createdAt",
-                            direction = Sort.Direction.DESC ) Pageable pageable)
+                            direction = Sort.Direction.DESC )@RequestParam(required = false) Integer patientId, Pageable pageable)
     {
-        Page<PatientResponse> patients = patientService.getAllPatientOnPage(pageable);
+        Page<PatientResponse> patients = patientService.getAllPatientOnPage(pageable,patientId);
         return ResponseEntity.ok(ApiResponse.success(patients));
     }
 }

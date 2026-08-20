@@ -7,8 +7,12 @@ import in.healthconnect.utils.PatientUtils;
 import in.healthconnect.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PatientService {
@@ -47,10 +51,16 @@ public class PatientService {
     }
 
 
-    public Page<PatientResponse> getAllPatientOnPage(Pageable pageable) {
-        Page<Patient> patientPage = patientRepository.findAll(pageable);
-        return patientPage.map(PatientUtils::mapToPatientResponse);
-    }
+    public Page<PatientResponse> getAllPatientOnPage(Pageable pageable,Integer patientId) {
+        if (patientId != null) {
+            Optional<Patient> patientOptional = patientRepository.findById(patientId);
+            if (patientOptional.isEmpty()) {return Page.empty(pageable);}
+            PatientResponse response = PatientUtils.mapToPatientResponse(patientOptional.get());
+            return new PageImpl<>(List.of(response), pageable, 1);
+}
+            Page<Patient> patientPage = patientRepository.findAll(pageable);
+            return patientPage.map(PatientUtils::mapToPatientResponse);
 
+    }
 
 }
