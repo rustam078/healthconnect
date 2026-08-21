@@ -1,7 +1,10 @@
 package in.healthconnect.controller;
 
+import in.healthconnect.dto.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
+import in.healthconnect.entity.enums.BloodGroup;
+import in.healthconnect.entity.enums.Gender;
 import in.healthconnect.service.PatientService;
 import in.healthconnect.wrapper.ApiResponse;
 import jakarta.validation.Valid;
@@ -30,12 +33,43 @@ public class PatientController {
                 .body(ApiResponse.success( patientResponse,"Patient created successfully"));
     }
 
+//    @GetMapping
+//    public ResponseEntity<ApiResponse< Page<PatientResponse>>>
+//    getAllPatientOnPage( @PageableDefault(page = 0, size=20, sort="createdAt",
+//                            direction = Sort.Direction.DESC )@RequestParam(required = false) Integer patientId, Pageable pageable)
+//    {
+//        Page<PatientResponse> patients = patientService.getAllPatientOnPage(pageable,patientId);
+//        return ResponseEntity.ok(ApiResponse.success(patients));
+//    }
+
+
     @GetMapping
-    public ResponseEntity<ApiResponse< Page<PatientResponse>>>
-    getAllPatientOnPage( @PageableDefault(page = 0, size=20, sort="createdAt",
-                            direction = Sort.Direction.DESC )@RequestParam(required = false) Integer patientId, Pageable pageable)
-    {
-        Page<PatientResponse> patients = patientService.getAllPatientOnPage(pageable,patientId);
-        return ResponseEntity.ok(ApiResponse.success(patients));
+    public ResponseEntity<ApiResponse<Page<PatientResponse>>> searchPatients(
+            @RequestParam(required = false)
+            Integer patientId,
+            @RequestParam(required = false)
+            String search,
+            @RequestParam(required = false)
+            String firstName,
+            @RequestParam(required = false)
+            Gender gender,
+            @RequestParam(required = false)
+            BloodGroup bloodGroup,
+
+            @PageableDefault(size = 20)
+            Pageable pageable
+
+    ) {
+
+        PatientSearchRequest request =
+                new PatientSearchRequest(
+                        search,
+                        firstName,
+                        gender,
+                        bloodGroup
+                );
+        return ResponseEntity
+                .ok(ApiResponse.success(patientService.searchPatients(request,patientId, pageable),"Patients retrieved successfully"));
     }
+
 }

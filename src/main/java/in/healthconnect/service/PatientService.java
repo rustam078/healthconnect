@@ -1,10 +1,13 @@
 package in.healthconnect.service;
 
+import in.healthconnect.PatientSpecification;
+import in.healthconnect.dto.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.Patient;
 import in.healthconnect.utils.PatientUtils;
 import in.healthconnect.repository.PatientRepository;
+import in.healthconnect.wrapper.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -61,6 +64,30 @@ public class PatientService {
             Page<Patient> patientPage = patientRepository.findAll(pageable);
             return patientPage.map(PatientUtils::mapToPatientResponse);
 
+    }
+
+
+
+
+    public Page<PatientResponse> searchPatients(
+            PatientSearchRequest request,
+            Integer patientId,
+            Pageable pageable
+    ) {
+
+        if (patientId != null) {
+            Optional<Patient> patientOptional = patientRepository.findById(patientId);
+            if (patientOptional.isEmpty()) {return Page.empty(pageable);}
+            PatientResponse response = PatientUtils.mapToPatientResponse(patientOptional.get());
+            return new PageImpl<>(List.of(response), pageable, 1);
+        }
+
+        Page<Patient> patients = patientRepository.findAll(
+                PatientSpecification.search(request),
+                pageable
+        );
+
+        return patients.map(PatientUtils::mapToPatientResponse);
     }
 
 }
