@@ -56,7 +56,7 @@ public class PatientController {
             @RequestParam(required = false)
             BloodGroup bloodGroup,
 
-            @PageableDefault(size = 20)
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable
 
     ) {

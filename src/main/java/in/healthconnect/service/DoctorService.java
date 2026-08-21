@@ -1,0 +1,69 @@
+package in.healthconnect.service;
+
+import in.healthconnect.DoctorSpecification;
+import in.healthconnect.dto.request.CreateDoctorRequest;
+import in.healthconnect.dto.request.DoctorFilterDto;
+import in.healthconnect.dto.response.DoctorResponse;
+import in.healthconnect.entity.Doctor;
+import in.healthconnect.exception.EmailExistException;
+import in.healthconnect.repository.DoctorRepository;
+import in.healthconnect.utils.DoctorUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class DoctorService {
+
+    private final DoctorRepository doctorRepository;
+    private final DoctorUtils doctorUtils;
+
+    public DoctorResponse createDoctor(CreateDoctorRequest createDoctorRequest) {
+        if (doctorRepository.existsByEmailIgnoreCase(createDoctorRequest.getEmail().trim())) {
+            throw new EmailExistException("Doctor with this email '" + createDoctorRequest.getEmail() + "' already exists");
+        }
+        String doctorCode = doctorUtils.generateDoctorCode();
+
+        //step3 create doctor objects using builder
+       Doctor doctor = Doctor.builder()
+                .doctorCode(doctorCode)
+                .firstName(createDoctorRequest.getFirstName())
+                .lastName(createDoctorRequest.getLastName())
+                .dateOfBirth(createDoctorRequest.getDateOfBirth())
+                .gender(createDoctorRequest.getGender())
+                .phone(createDoctorRequest.getPhone())
+                .email(createDoctorRequest.getEmail())
+               .qualification(createDoctorRequest.getQualification())
+                .experienceYears(createDoctorRequest.getExperienceYears())
+               .consultationFee(createDoctorRequest.getConsultationFee())
+                .build();
+
+        //step4 save that save object
+        doctor = doctorRepository.save(doctor);
+        //step5 retun doctorResponce
+        return DoctorUtils.mapToDoctorResponse(doctor);
+    }
+
+    public  Page<DoctorResponse> searchDoctors(DoctorFilterDto doctorFilterDto, String search, Integer doctorId, Pageable pageable) {
+        if(doctorId!=null){
+                Optional<Doctor> doctorOptional = doctorRepository.findById(doctorId);
+                if (doctorOptional.isEmpty()) {return Page.empty(pageable);}
+                DoctorResponse response = DoctorUtils.mapToDoctorResponse(doctorOptional.get());
+                return new PageImpl<>(List.of(response), pageable, 1);
+            }
+
+        Page<Doctor> doctors = doctorRepository.findAll(
+                DoctorSpecification.search(doctorFilterDto,search),
+                pageable
+        );
+        return doctors.map(DoctorUtils::mapToDoctorResponse);
+
+    }
+
+}
