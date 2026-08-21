@@ -1,9 +1,7 @@
 package in.healthconnect.utils;
 
 import in.healthconnect.dto.response.DoctorResponse;
-import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.Doctor;
-import in.healthconnect.entity.Patient;
 import in.healthconnect.repository.DoctorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,11 +12,11 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
-public class DotorUtils {
+public class DoctorUtils {
     @Autowired
     private DoctorRepository doctorRepository;
 
-    public static DoctorResponse mapToDotorResponse(Doctor doctor) {
+    public static DoctorResponse mapToDoctorResponse(Doctor doctor) {
         int age = Period.between(
                 doctor.getDateOfBirth(),
                 LocalDate.now()
