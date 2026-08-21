@@ -116,7 +116,7 @@ public class PatientService {
         Patient patient = patientRepository.findById(id).orElseThrow(() ->
                 new ResourceNotFoundException("Patient with id '" + id + "' does not exist"));
 
-        patient.setDeleted(true);
-        patientRepository.save(patient);
+//        patient.setDeleted(true);
+        patientRepository.delete(patient);
     }
 }

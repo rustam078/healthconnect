@@ -5,6 +5,8 @@ import in.healthconnect.entity.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
 
@@ -14,6 +16,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE Patient SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")//Normal Hibernate queries mein is_deleted = true wale patients ko automatically exclude kar dena.
 public class Patient extends BaseEntity {
 
     @NotBlank
