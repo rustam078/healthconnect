@@ -5,6 +5,7 @@ import in.healthconnect.dto.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.Patient;
+import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.utils.PatientUtils;
 import in.healthconnect.repository.PatientRepository;
 import in.healthconnect.wrapper.ApiResponse;
@@ -88,6 +89,27 @@ public class PatientService {
         );
 
         return patients.map(PatientUtils::mapToPatientResponse);
+    }
+
+    public PatientResponse updateExistPatientById(Integer id ,CreatePatientRequest patientRequest) {
+
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Patient with id '" + id + "' does not exist"));
+
+        if(patientRequest.getPhone() != null) {
+            patient.setPhone(patientRequest.getPhone().trim());
+        }
+        if(patientRequest.getEmail() != null){
+            patient.setEmail(patientRequest.getEmail().trim());
+        }
+        if(patientRequest.getBloodGroup() != null){
+            patient.setBloodGroup(patientRequest.getBloodGroup());
+        }
+        if(patientRequest.getAddress() != null){
+            patient.setAddress(patientRequest.getAddress().trim());
+        }
+
+        patientRepository.save(patient);
+        return PatientUtils.mapToPatientResponse(patient);
     }
 
 }
