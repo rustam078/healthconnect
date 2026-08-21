@@ -72,4 +72,11 @@ public class PatientController {
                 .ok(ApiResponse.success(patientService.searchPatients(request,patientId, pageable),"Patients retrieved successfully"));
     }
 
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<PatientResponse>> updatePatientById(@PathVariable Integer id, @RequestBody CreatePatientRequest patientRequest) {
+        PatientResponse patientResponse = patientService.updateExistPatientById(id, patientRequest);
+
+        return ResponseEntity.ok(ApiResponse.success(patientResponse,"Patient updated successfully"));
+    }
 }
