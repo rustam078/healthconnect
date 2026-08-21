@@ -17,7 +17,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Builder
 @SQLDelete(sql = "UPDATE Patient SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted = false")//Normal Hibernate queries mein is_deleted = true wale patients ko automatically exclude kar dena.
 public class Patient extends BaseEntity {
 
     @NotBlank
