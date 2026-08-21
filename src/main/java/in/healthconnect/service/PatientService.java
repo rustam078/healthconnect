@@ -112,4 +112,11 @@ public class PatientService {
         return PatientUtils.mapToPatientResponse(patient);
     }
 
+    public void deletePatientById(Integer id) {
+        Patient patient = patientRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Patient with id '" + id + "' does not exist"));
+
+        patient.setDeleted(true);
+        patientRepository.save(patient);
+    }
 }
