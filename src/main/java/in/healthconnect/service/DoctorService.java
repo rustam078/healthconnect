@@ -6,6 +6,7 @@ import in.healthconnect.dto.request.DoctorFilterDto;
 import in.healthconnect.dto.response.DoctorResponse;
 import in.healthconnect.entity.Doctor;
 import in.healthconnect.exception.EmailExistException;
+import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.DoctorRepository;
 import in.healthconnect.utils.DoctorUtils;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,13 @@ public class DoctorService {
         );
         return doctors.map(DoctorUtils::mapToDoctorResponse);
 
+    }
+
+    public void deleteDoctorById(Integer id) {
+       Doctor doctor = doctorRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Doctor with id '" + id + "' does not exist"));
+
+        doctorRepository.delete(doctor);
     }
 
 }

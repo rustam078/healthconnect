@@ -3,6 +3,7 @@ package in.healthconnect.entity;
 import in.healthconnect.entity.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ uniqueConstraints = {
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE doctors SET is_deleted = true WHERE id = ?")
 public class Doctor extends BaseEntity {
 
     @Column(name = "doctor_code", nullable = false, unique = true, length = 20)
