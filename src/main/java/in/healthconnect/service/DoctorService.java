@@ -74,4 +74,39 @@ public class DoctorService {
         doctorRepository.delete(doctor);
     }
 
+
+
+    public DoctorResponse updateDoctor(Integer doctorId, CreateDoctorRequest request) {
+
+        Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() ->
+                        new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
+
+        if (request.getEmail() != null) {String email = request.getEmail().trim();
+            if (doctorRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
+                throw new EmailExistException("Doctor with this email '" + request.getEmail() + "' already exists");
+            }
+            doctor.setEmail(email);
+        }
+
+        if (request.getFirstName() != null) {doctor.setFirstName(request.getFirstName().trim());}
+
+        if (request.getLastName() != null) {doctor.setLastName(request.getLastName().trim());}
+
+        if (request.getPhone() != null) {doctor.setPhone(request.getPhone().trim());}
+
+//        if (request.getGender() != null) {doctor.setGender(request.getGender());}
+//
+//        if (request.getDateOfBirth() != null) {doctor.setDateOfBirth(request.getDateOfBirth());}
+
+        if (request.getQualification() != null) {doctor.setQualification(request.getQualification().trim());}
+
+        if (request.getExperienceYears() != null) {doctor.setExperienceYears(request.getExperienceYears());}
+
+        if (request.getConsultationFee() != null) {doctor.setConsultationFee(request.getConsultationFee());}
+
+        // save
+        doctorRepository.save(doctor);
+
+        return DoctorUtils.mapToDoctorResponse(doctor);
+    }
 }
