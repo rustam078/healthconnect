@@ -44,6 +44,11 @@ public class DoctorController {
           return ResponseEntity.ok(ApiResponse.success(doctorService.searchDoctors(doctorFilterDto,search,doctorId, pageable),"Doctors retrieved successfully"));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteDoctorById(@PathVariable Integer id) {
+        doctorService.deleteDoctorById(id);
+        return ResponseEntity.ok(ApiResponse.success(null,"Doctor deleted successfully"));
+    }
 
     @PutMapping("/{doctorId}")
     public ResponseEntity<ApiResponse<DoctorResponse>> updateDoctor (@PathVariable Integer doctorId,

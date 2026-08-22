@@ -67,6 +67,13 @@ public class DoctorService {
 
     }
 
+    public void deleteDoctorById(Integer id) {
+       Doctor doctor = doctorRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Doctor with id '" + id + "' does not exist"));
+
+        doctorRepository.delete(doctor);
+    }
+
 
 
     public DoctorResponse updateDoctor(Integer doctorId, CreateDoctorRequest request) {
