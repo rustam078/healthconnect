@@ -20,9 +20,6 @@ public class SpecialtyController {
 
     private final SpecialityService  specialityService;
 
-
-
-
     @PostMapping
     public ResponseEntity<ApiResponse<SpecialtyResponse>> createSpecialty(@RequestBody @Valid CreateSpecialtyRequest createSpecialtyRequest){
 
