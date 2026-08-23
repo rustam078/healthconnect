@@ -6,12 +6,13 @@ import in.healthconnect.service.SpecialityService;
 import in.healthconnect.wrapper.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/specialties")
@@ -25,6 +26,18 @@ public class SpecialtyController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(specialityService.createSpeciality(createSpecialtyRequest),"Specialty created successfully"));
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<SpecialtyResponse>>> getSpecialties(
+            @RequestParam(required = false) Integer specialityId,
+            @RequestParam(required = false) String search,
+            @PageableDefault(page = 0, size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        specialityService.getSpecialties(specialityId, search, pageable),
+                        "Specialties retrieved successfully"));
     }
 
 }

@@ -4,10 +4,11 @@ import in.healthconnect.dto.request.CreateSpecialtyRequest;
 import in.healthconnect.dto.response.SpecialtyResponse;
 import in.healthconnect.entity.Specialty;
 import in.healthconnect.repository.SpecialityRepository;
+import in.healthconnect.utils.SpecialityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.time.ZoneId;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +30,17 @@ public class SpecialityService {
 
         specialty = specialityRepository.save(specialty);
 
-      final SpecialtyResponse specialtyResponse = new SpecialtyResponse();
-        specialtyResponse.setId(specialty.getId());
-        specialtyResponse.setName(specialty.getName());
-        specialtyResponse.setDescription(specialty.getDescription());
-        specialtyResponse.setCreatedAt(specialty.getCreatedAt().atZone(ZoneId.of("Asia/Kolkata")).toLocalDateTime());
-        specialtyResponse.setUpdatedAt(specialty.getUpdatedAt().atZone(ZoneId.of("Asia/Kolkata")).toLocalDateTime());
-
-        return specialtyResponse;
+        return SpecialityUtils.mapToSpecialityResponse(specialty);
     }
 
+        public Page<SpecialtyResponse> getSpecialties(Integer specialityId, String search, Pageable pageable) {
+
+        if(specialityId!=null)
+            specialityRepository.findById(specialityId).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + specialityId));
+
+        Page<Specialty> specialties = specialityRepository.searchSpecialties(
+                            specialityId, search, pageable);
+
+        return specialties.map(SpecialityUtils::mapToSpecialityResponse);
+        }
 }
