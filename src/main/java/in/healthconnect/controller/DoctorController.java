@@ -52,7 +52,7 @@ public class DoctorController {
 
     @PutMapping("/{doctorId}")
     public ResponseEntity<ApiResponse<DoctorResponse>> updateDoctor (@PathVariable Integer doctorId,
-            @Valid @RequestBody CreateDoctorRequest request) {
+             @RequestBody CreateDoctorRequest request) {
         DoctorResponse response = doctorService.updateDoctor(doctorId, request);
         return ResponseEntity.ok(
                 ApiResponse.success(response ,"doctor updated successfully")
