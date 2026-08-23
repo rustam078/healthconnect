@@ -8,6 +8,7 @@ import in.healthconnect.entity.Doctor;
 import in.healthconnect.exception.EmailExistException;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.DoctorRepository;
+import in.healthconnect.utils.CommonUtils;
 import in.healthconnect.utils.DoctorUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -81,8 +82,10 @@ public class DoctorService {
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() ->
                         new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
 
-        if (request.getEmail() != null) {String email = request.getEmail().trim();
-            if (doctorRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
+        if (request.getEmail() != null) {
+            String email = request.getEmail().trim();
+            CommonUtils.validateEmail(email);
+            if (doctorRepository.countByEmailIgnoreCaseAndDoctorIdNot(request.getEmail().trim(),doctorId)>0) {
                 throw new EmailExistException("Doctor with this email '" + request.getEmail() + "' already exists");
             }
             doctor.setEmail(email);
