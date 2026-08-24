@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 @Entity
 @Table(
@@ -19,6 +20,7 @@ uniqueConstraints = {
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE specialties SET is_deleted = true WHERE id = ?")
 public class Specialty extends BaseEntity {
     @Column(name = "name", nullable = false, unique = true, length = 100)
 private String name;

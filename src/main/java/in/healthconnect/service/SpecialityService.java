@@ -43,4 +43,24 @@ public class SpecialityService {
 
         return specialties.map(SpecialityUtils::mapToSpecialityResponse);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public void deleteSpeciality(Integer specialityId) {
+        Specialty specialty = specialityRepository.findById(specialityId).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + specialityId));
+        specialityRepository.delete(specialty);
+    }
 }
