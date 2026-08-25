@@ -14,7 +14,11 @@ public record DoctorAvailabilityRequest(
         LocalTime startTime,
 
         @NotNull(message = "End time is required")
-        LocalTime endTime
+        LocalTime endTime  ,
+
+        LocalTime breakStartTime,
+
+        LocalTime breakEndTime
 
 ) {
 }

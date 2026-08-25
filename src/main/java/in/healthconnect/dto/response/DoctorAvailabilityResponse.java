@@ -16,4 +16,6 @@ public class DoctorAvailabilityResponse {
     private DayOfWeek dayOfWeek;
     private LocalTime startTime;
     private LocalTime endTime;
+    private LocalTime breakStartTime;
+    private LocalTime breakEndTime;
 }
