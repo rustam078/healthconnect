@@ -32,5 +32,12 @@ public class DoctorSpecialityController {
         return ResponseEntity.ok(ApiResponse.success( doctorSpecialtyService.getSpecialtieswithDoctorId(doctorId),"All the  Doctor and specialties assigned get successfully"));
     }
 
+
+    @DeleteMapping("/doctors/{doctorId}/specialties/{specialtyId}")
+    public ResponseEntity<ApiResponse<String>> deleteSpecialtyByIds(@PathVariable Integer doctorId, @PathVariable Integer specialtyId) {
+        doctorSpecialtyService.deleteSpecialityByDoctorId(doctorId,specialtyId);
+        return ResponseEntity.ok(ApiResponse.success("Speciality  get removed successfully by specialtyId and by doctorId"));
+    }
+
 }
 

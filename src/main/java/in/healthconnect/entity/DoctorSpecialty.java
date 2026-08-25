@@ -2,6 +2,7 @@ package in.healthconnect.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 @Table(name = "doctor_specialties",
         uniqueConstraints = {@UniqueConstraint(name = "uk_doctor_specialty",
@@ -12,6 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SQLDelete(sql = "UPDATE doctor_specialties SET is_deleted = true WHERE id = ?")
 public class DoctorSpecialty extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

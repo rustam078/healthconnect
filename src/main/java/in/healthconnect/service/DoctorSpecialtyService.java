@@ -12,6 +12,7 @@ import in.healthconnect.repository.DoctorSpecialtyRepository;
 import in.healthconnect.repository.SpecialityRepository;
 import in.healthconnect.utils.DoctorUtils;
 import in.healthconnect.utils.SpecialityUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -137,5 +138,20 @@ public class DoctorSpecialtyService {
         );
 
 
+    }
+
+
+@Transactional
+    public void deleteSpecialityByDoctorId(Integer doctorId, Integer specialtyId) {
+
+        doctorRepository.findByIdAndDeletedFalse(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist or is inactive"));
+
+        if(doctorSpecialtyRepository.existsByDoctorIdAndSpecialtyIdAndDeletedFalse(doctorId,specialtyId))
+        {
+            doctorSpecialtyRepository.deleteByDoctorIdAndSpecialtyId(doctorId,specialtyId);
+        }else {
+           throw  new ResourceNotFoundException("Specialty with id '" + specialtyId + "' is not assigned to doctor '" + doctorId + "'");
+        }
     }
 }
