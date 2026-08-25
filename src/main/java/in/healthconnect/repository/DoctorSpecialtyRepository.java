@@ -1,16 +1,24 @@
 package in.healthconnect.repository;
 
-import in.healthconnect.entity.DoctorSpecialty;
+import in.healthconnect.entity.DoctorSpecialtyMap;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import java.util.List;
 
 
 public interface DoctorSpecialtyRepository
-        extends JpaRepository<DoctorSpecialty, Integer> {
+        extends JpaRepository<DoctorSpecialtyMap, Integer> {
 
-    List<DoctorSpecialty> findByDoctorIdAndDeletedFalse(Integer doctorId);
+    List<DoctorSpecialtyMap> findByDoctorId(Integer doctorId);
 
-    boolean existsByDoctorIdAndSpecialtyIdAndDeletedFalse(Integer doctorId, Integer specialtyIds);
 
+//    @Modifying
+//    @Query("""
+//    UPDATE DoctorSpecialtyMap ds
+//    SET ds.deleted = true
+//    WHERE ds.doctor.id = :doctorId
+//      AND ds.specialty.id = :specialtyId
+//      AND ds.deleted = false
+//""")
     void deleteByDoctorIdAndSpecialtyId(Integer doctorId, Integer specialtyId);
 }

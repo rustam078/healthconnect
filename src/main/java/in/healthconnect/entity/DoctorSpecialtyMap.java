@@ -3,7 +3,7 @@ package in.healthconnect.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name = "doctor_specialties",
+@Table(name = "doctor_specialties_map",
         uniqueConstraints = {@UniqueConstraint(name = "uk_doctor_specialty",
                 columnNames = {"doctor_id", "specialty_id"})})
 @Entity
@@ -12,7 +12,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DoctorSpecialty extends BaseEntity {
+public class DoctorSpecialtyMap {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id",
