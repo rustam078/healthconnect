@@ -47,11 +47,11 @@ public class SpecialityService {
 
     public SpecialtyResponse updateSpeciality(Integer id,CreateSpecialtyRequest createSpecialtyRequest) {
         Specialty specialty1 = specialityRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + id));
-        if(specialty1.getId() == id && specialityRepository.existsByNameIgnoreCase(createSpecialtyRequest.getName().trim())) {
+        if(createSpecialtyRequest.getDescription()!=null) {
             specialty1.setDescription(createSpecialtyRequest.getDescription());
         }else
         {
-            throw new IllegalArgumentException( "speciality name does not match with description ");
+            throw new IllegalArgumentException( "Description Is Empty..");
         }
         specialty1 = specialityRepository.save(specialty1);
         return SpecialityUtils.mapToSpecialityResponse(specialty1);
