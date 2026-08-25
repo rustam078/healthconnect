@@ -3,9 +3,10 @@ package in.healthconnect.repository;
 import in.healthconnect.entity.Doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface DoctorRepository extends JpaRepository<Doctor,Integer>, JpaSpecificationExecutor<Doctor> {
 
@@ -24,4 +25,5 @@ public interface DoctorRepository extends JpaRepository<Doctor,Integer>, JpaSpec
             @Param("doctorId") Integer doctorId
     );
 
+    Optional<Doctor> findByIdAndDeletedFalse(Integer doctorId);
 }
