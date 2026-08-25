@@ -1,14 +1,13 @@
 package in.healthconnect.service;
 
 import in.healthconnect.PatientSpecification;
-import in.healthconnect.dto.PatientSearchRequest;
+import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.Patient;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.utils.PatientUtils;
 import in.healthconnect.repository.PatientRepository;
-import in.healthconnect.wrapper.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

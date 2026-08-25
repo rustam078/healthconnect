@@ -1,9 +1,7 @@
 package in.healthconnect;
 
-import in.healthconnect.dto.PatientSearchRequest;
 import in.healthconnect.dto.request.DoctorFilterDto;
 import in.healthconnect.entity.Doctor;
-import in.healthconnect.entity.Patient;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;

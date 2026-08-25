@@ -106,7 +106,8 @@ public class DoctorSpecialtyService {
         // 13. Return response
         return new AssignDoctorSpecialtiesResponse(
                 doctorResponse,
-                specialtyResponses
+                specialtyResponses,
+                null
         );
     }
 
@@ -134,7 +135,8 @@ public class DoctorSpecialtyService {
         //  Return response
         return new AssignDoctorSpecialtiesResponse(
                 doctorResponse,
-                specialtyResponses
+                specialtyResponses,
+                null
         );
 
 

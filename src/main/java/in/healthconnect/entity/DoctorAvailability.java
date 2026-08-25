@@ -9,7 +9,7 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "doctor_availabilities",
         uniqueConstraints = {@UniqueConstraint(name = "uk_doctor_day_time",
-                columnNames = {"doctor_id", "day_of_week", "start_time", "end_time"})
+                columnNames = {"doctor_id", "day_of_week"})
         }
 )
 
@@ -32,5 +32,11 @@ public class DoctorAvailability extends BaseEntity {
 
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
+
+    @Column(name = "break_start_time")
+    private LocalTime breakStartTime;
+
+    @Column(name = "break_end_time")
+    private LocalTime breakEndTime;
 
 }

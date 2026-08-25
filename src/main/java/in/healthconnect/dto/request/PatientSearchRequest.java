@@ -1,4 +1,4 @@
-package in.healthconnect.dto;
+package in.healthconnect.dto.request;
 
 import in.healthconnect.entity.enums.BloodGroup;
 import in.healthconnect.entity.enums.Gender;

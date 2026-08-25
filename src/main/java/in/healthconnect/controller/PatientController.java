@@ -1,6 +1,6 @@
 package in.healthconnect.controller;
 
-import in.healthconnect.dto.PatientSearchRequest;
+import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.enums.BloodGroup;

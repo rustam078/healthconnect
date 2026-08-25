@@ -1,6 +1,6 @@
 package in.healthconnect;
 
-import in.healthconnect.dto.PatientSearchRequest;
+import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.entity.Patient;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;

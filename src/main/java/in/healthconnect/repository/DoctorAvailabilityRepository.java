@@ -10,8 +10,10 @@ import java.util.List;
 public interface DoctorAvailabilityRepository
         extends JpaRepository<DoctorAvailability, Integer> {
 
-    List<DoctorAvailability> findByDoctorIdAndDeletedFalseOrderByDayOfWeekAscStartTimeAsc(Integer doctorId);
+    List<DoctorAvailability> findByDoctorIdOrderByDayOfWeekAscStartTimeAsc(Integer doctorId);
 
     boolean existsByDoctorIdAndDayOfWeekAndStartTimeAndEndTimeAndDeletedFalse(
             Integer doctorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime);
+
+    List<DoctorAvailability> findByDoctorId(Integer doctorId);
 }
