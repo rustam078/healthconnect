@@ -33,4 +33,13 @@ public class DoctorAvailabilityController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(service.getDoctorDetails(doctorId),"doctor Availability Get successfully"));
     }
+
+
+    @DeleteMapping("{doctorId}/availability/{availabilityId}")
+    public ResponseEntity<ApiResponse<?>> deleteDoctorAvailability(@PathVariable Integer doctorId, @PathVariable Integer availabilityId) {
+        service.deleteDoctorAvailability(doctorId, availabilityId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Doctor availability deleted successfully"));
+    }
+
 }
