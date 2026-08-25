@@ -4,7 +4,7 @@ import in.healthconnect.dto.response.AssignDoctorSpecialtiesResponse;
 import in.healthconnect.dto.response.DoctorResponse;
 import in.healthconnect.dto.response.SpecialtyResponse;
 import in.healthconnect.entity.Doctor;
-import in.healthconnect.entity.DoctorSpecialty;
+import in.healthconnect.entity.DoctorSpecialtyMap;
 import in.healthconnect.entity.Specialty;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.DoctorRepository;
@@ -56,12 +56,12 @@ public class DoctorSpecialtyService {
         }
 
      // 5. Get doctor's existing active associations
-        List<DoctorSpecialty> existingAssociations =
-                doctorSpecialtyRepository.findByDoctorIdAndDeletedFalse(doctorId);
+        List<DoctorSpecialtyMap> existingAssociations =
+                doctorSpecialtyRepository.findByDoctorId(doctorId);
 
         // 6. Get IDs of already assigned specialties
         Set<Integer> existingSpecialtyIds = existingAssociations.stream()
-                .map(DoctorSpecialty::getSpecialty)
+                .map(DoctorSpecialtyMap::getSpecialty)
                 .map(Specialty::getId)
                 .collect(Collectors.toSet());
 
@@ -70,16 +70,16 @@ public class DoctorSpecialtyService {
         missingSpecialtyIds.removeAll(existingSpecialtyIds);
 
         // 8. Create new associations
-        List<DoctorSpecialty> newAssociations = new ArrayList<>();
+        List<DoctorSpecialtyMap> newAssociations = new ArrayList<>();
 
         for (Specialty specialty : specialties) {
             if (missingSpecialtyIds.contains(specialty.getId())) {
-                DoctorSpecialty doctorSpecialty = new DoctorSpecialty();
+                DoctorSpecialtyMap DoctorSpecialtyMap = new DoctorSpecialtyMap();
 
-                doctorSpecialty.setDoctor(doctor);
-                doctorSpecialty.setSpecialty(specialty);
+                DoctorSpecialtyMap.setDoctor(doctor);
+                DoctorSpecialtyMap.setSpecialty(specialty);
 
-                newAssociations.add(doctorSpecialty);
+                newAssociations.add(DoctorSpecialtyMap);
             }
         }
 
@@ -89,13 +89,13 @@ public class DoctorSpecialtyService {
         }
 
         // 10. Get updated active associations
-        List<DoctorSpecialty> updatedAssociations =
-                doctorSpecialtyRepository.findByDoctorIdAndDeletedFalse(doctorId);
+        List<DoctorSpecialtyMap> updatedAssociations =
+                doctorSpecialtyRepository.findByDoctorId(doctorId);
 
         // 11. Map specialties
         List<SpecialtyResponse> specialtyResponses =
                 updatedAssociations.stream()
-                        .map(DoctorSpecialty::getSpecialty)
+                        .map(DoctorSpecialtyMap::getSpecialty)
                         .map(SpecialityUtils::mapToSpecialityResponse)
                         .toList();
 
@@ -116,14 +116,14 @@ public class DoctorSpecialtyService {
                 .orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist or is inactive"));
 
 
-        List<DoctorSpecialty> existingAssociations =
-                doctorSpecialtyRepository.findByDoctorIdAndDeletedFalse(doctorId);
+        List<DoctorSpecialtyMap> existingAssociations =
+                doctorSpecialtyRepository.findByDoctorId(doctorId);
 
 
         //  Map specialties
         List<SpecialtyResponse> specialtyResponses =
                 existingAssociations.stream()
-                        .map(DoctorSpecialty::getSpecialty)
+                        .map(DoctorSpecialtyMap::getSpecialty)
                         .map(SpecialityUtils::mapToSpecialityResponse)
                         .toList();
 
@@ -140,18 +140,8 @@ public class DoctorSpecialtyService {
 
     }
 
-
-@Transactional
+    @Transactional
     public void deleteSpecialityByDoctorId(Integer doctorId, Integer specialtyId) {
-
-        doctorRepository.findByIdAndDeletedFalse(doctorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist or is inactive"));
-
-        if(doctorSpecialtyRepository.existsByDoctorIdAndSpecialtyIdAndDeletedFalse(doctorId,specialtyId))
-        {
             doctorSpecialtyRepository.deleteByDoctorIdAndSpecialtyId(doctorId,specialtyId);
-        }else {
-           throw  new ResourceNotFoundException("Specialty with id '" + specialtyId + "' is not assigned to doctor '" + doctorId + "'");
-        }
     }
 }

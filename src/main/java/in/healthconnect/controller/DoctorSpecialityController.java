@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/v1")
 public class DoctorSpecialityController {
@@ -36,7 +34,7 @@ public class DoctorSpecialityController {
     @DeleteMapping("/doctors/{doctorId}/specialties/{specialtyId}")
     public ResponseEntity<ApiResponse<String>> deleteSpecialtyByIds(@PathVariable Integer doctorId, @PathVariable Integer specialtyId) {
         doctorSpecialtyService.deleteSpecialityByDoctorId(doctorId,specialtyId);
-        return ResponseEntity.ok(ApiResponse.success("Speciality  get removed successfully by specialtyId and by doctorId"));
+        return ResponseEntity.ok(ApiResponse.success("Speciality  get removed successfully "));
     }
 
 }
