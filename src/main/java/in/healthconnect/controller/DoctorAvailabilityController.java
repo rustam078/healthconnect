@@ -18,7 +18,19 @@ public class DoctorAvailabilityController {
     @PostMapping("/{doctorId}/availability")
     public ResponseEntity<ApiResponse<?>> createOrUpdateDoctor(@PathVariable Integer doctorId, @RequestBody @Valid CreateDoctorAvailabilityRequest request)
     {
+        try {
+            String DoctorAvailability = service.createOrUpdateDoctorAvailability(doctorId, request);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success(DoctorAvailability));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/details/{doctorId}")
+    public ResponseEntity<ApiResponse<?>> getDoctorDetails(@PathVariable Integer doctorId)
+    {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(service.createOrUpdateDoctorAvailability(doctorId,request),"doctor Availability created successfully"));
+                .body(ApiResponse.success(service.getDoctorDetails(doctorId),"doctor Availability Get successfully"));
     }
 }
