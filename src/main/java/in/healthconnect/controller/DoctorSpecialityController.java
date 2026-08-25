@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1")
 public class DoctorSpecialityController {
@@ -23,4 +25,12 @@ public class DoctorSpecialityController {
                 , request.specialtyIds()), "Specialties assigned successfully"));
     }
 
+
+    @GetMapping("/doctors/{doctorId}/specialties")
+    public ResponseEntity<ApiResponse<AssignDoctorSpecialtiesResponse>> getSpecialtieswithDoctorId(@PathVariable Integer doctorId) {
+
+        return ResponseEntity.ok(ApiResponse.success( doctorSpecialtyService.getSpecialtieswithDoctorId(doctorId),"All the  Doctor and specialties assigned get successfully"));
+    }
+
 }
+
