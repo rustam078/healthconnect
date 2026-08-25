@@ -2,7 +2,6 @@ package in.healthconnect.repository;
 
 import in.healthconnect.entity.DoctorSpecialty;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 
 
@@ -11,7 +10,7 @@ public interface DoctorSpecialtyRepository
 
     List<DoctorSpecialty> findByDoctorIdAndDeletedFalse(Integer doctorId);
 
-    boolean existsByDoctorIdAndSpecialtyIdAndDeletedFalse(Integer doctorId, Integer specialtyId);
+    boolean existsByDoctorIdAndSpecialtyIdAndDeletedFalse(Integer doctorId, Integer specialtyIds);
 
     void deleteByDoctorIdAndSpecialtyId(Integer doctorId, Integer specialtyId);
 }
