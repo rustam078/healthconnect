@@ -45,22 +45,15 @@ public class SpecialityService {
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public void deleteSpeciality(Integer specialityId) {
-        Specialty specialty = specialityRepository.findById(specialityId).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + specialityId));
-        specialityRepository.delete(specialty);
+    public SpecialtyResponse updateSpeciality(Integer id,CreateSpecialtyRequest createSpecialtyRequest) {
+        Specialty specialty1 = specialityRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + id));
+        if(createSpecialtyRequest.getDescription()!=null) {
+            specialty1.setDescription(createSpecialtyRequest.getDescription());
+        }else
+        {
+            throw new IllegalArgumentException( "Description Is Empty..");
+        }
+        specialty1 = specialityRepository.save(specialty1);
+        return SpecialityUtils.mapToSpecialityResponse(specialty1);
     }
 }

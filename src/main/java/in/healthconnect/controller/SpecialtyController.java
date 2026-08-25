@@ -40,18 +40,11 @@ public class SpecialtyController {
                         "Specialties retrieved successfully"));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SpecialtyResponse>> updateSpecialty(@PathVariable Integer id, @RequestBody  CreateSpecialtyRequest createSpecialtyRequest){
 
-
-
-
-
-
-
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteSpecialty(@PathVariable Integer id){
-        specialityService.deleteSpeciality(id);
-        return ResponseEntity.ok(ApiResponse.success("Specialty deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success( specialityService.updateSpeciality(id, createSpecialtyRequest),"Specialty updated successfully"));
     }
+
 
 }
