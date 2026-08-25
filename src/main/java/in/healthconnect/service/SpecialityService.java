@@ -56,4 +56,9 @@ public class SpecialityService {
         specialty1 = specialityRepository.save(specialty1);
         return SpecialityUtils.mapToSpecialityResponse(specialty1);
     }
+
+    public void deleteSpeciality(Integer specialityId) {
+        Specialty specialty = specialityRepository.findById(specialityId).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + specialityId));
+        specialityRepository.delete(specialty);
+    }
 }
