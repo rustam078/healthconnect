@@ -108,4 +108,34 @@ public class DoctorSpecialtyService {
                 specialtyResponses
         );
     }
+
+    public AssignDoctorSpecialtiesResponse getSpecialtieswithDoctorId(Integer doctorId) {
+
+        Doctor doctor = doctorRepository.findByIdAndDeletedFalse(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist or is inactive"));
+
+
+        List<DoctorSpecialty> existingAssociations =
+                doctorSpecialtyRepository.findByDoctorIdAndDeletedFalse(doctorId);
+
+
+        //  Map specialties
+        List<SpecialtyResponse> specialtyResponses =
+                existingAssociations.stream()
+                        .map(DoctorSpecialty::getSpecialty)
+                        .map(SpecialityUtils::mapToSpecialityResponse)
+                        .toList();
+
+        //  Map doctor
+        DoctorResponse doctorResponse =
+                DoctorUtils.mapToDoctorResponse(doctor);
+
+        //  Return response
+        return new AssignDoctorSpecialtiesResponse(
+                doctorResponse,
+                specialtyResponses
+        );
+
+
+    }
 }
