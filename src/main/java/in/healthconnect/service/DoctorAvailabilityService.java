@@ -117,4 +117,26 @@ public class DoctorAvailabilityService {
     }
 
 
+
+    public AssignDoctorSpecialtiesResponse getDoctorAvailability(Integer doctorId) {
+
+        // 1. Fetch doctor
+        Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
+
+        // 2. Fetch all existing availability ONCE
+        List<DoctorAvailability> existingAvailability = doctorAvailabilityRepository.findByDoctorId(doctorId);
+
+         //Convert to response
+        //  Map doctor
+        DoctorResponse doctorResponse =
+                DoctorUtils.mapToDoctorResponse(doctor);
+
+        List<DoctorAvailabilityResponse> list = existingAvailability.stream().map(DoctorAvailabilityUtils::mapToResponse).toList();
+        //  Return response
+        return new AssignDoctorSpecialtiesResponse(
+                doctorResponse,
+                null,
+                list
+        );
+    }
 }

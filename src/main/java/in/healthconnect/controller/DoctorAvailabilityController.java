@@ -21,4 +21,11 @@ public class DoctorAvailabilityController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(service.createOrUpdateDoctorAvailability(doctorId,request),"doctor Availability created successfully"));
     }
+
+    @GetMapping("/{doctorId}/availability")
+    public ResponseEntity<ApiResponse<?>> getDoctorAvailability(@PathVariable Integer doctorId)
+    {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(service.getDoctorAvailability(doctorId),"doctor Availability Get successfully"));
+    }
 }
