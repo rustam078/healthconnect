@@ -40,4 +40,11 @@ public class SpecialtyController {
                         "Specialties retrieved successfully"));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SpecialtyResponse>> updateSpecialty(@PathVariable Integer id, @RequestBody  CreateSpecialtyRequest createSpecialtyRequest){
+
+        return ResponseEntity.ok(ApiResponse.success( specialityService.updateSpeciality(id, createSpecialtyRequest),"Specialty updated successfully"));
+    }
+
+
 }
