@@ -23,9 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,7 +35,7 @@ public class DoctorAvailabilityService {
     private final DoctorAvailabilityRepository doctorAvailabilityRepository;
     private final DoctorSpecialtyRepository doctorSpecialtyRepository;
     @Transactional
-    public AssignDoctorSpecialtiesResponse createOrUpdateDoctorAvailability(Integer doctorId, CreateDoctorAvailabilityRequest request) {
+    public String createOrUpdateDoctorAvailability(Integer doctorId, CreateDoctorAvailabilityRequest request) {
 
         // 1. Fetch doctor
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
@@ -69,34 +67,10 @@ public class DoctorAvailabilityService {
         }
         // 5. Save new + updated records
         List<DoctorAvailability> saved = doctorAvailabilityRepository.saveAll(availabilityToSave);
-
-        //Convert to response
-        //  Map doctor
-        DoctorResponse doctorResponse =
-                DoctorUtils.mapToDoctorResponse(doctor);
-
-        List<DoctorSpecialtyMap> existingAssociations =
-                doctorSpecialtyRepository.findByDoctorId(doctorId);
-
-
-        //  Map specialties
-        List<SpecialtyResponse> specialtyResponses =
-                existingAssociations.stream()
-                        .map(DoctorSpecialtyMap::getSpecialty)
-                        .map(SpecialityUtils::mapToSpecialityResponse)
-                        .toList();
-        List<DoctorAvailabilityResponse> list = saved.stream().map(DoctorAvailabilityUtils::mapToResponse).toList();
-        //  Return response
-        return new AssignDoctorSpecialtiesResponse(
-                doctorResponse,
-                specialtyResponses,
-                list
-        );
-        // 6. Convert to response
-//        return saved.stream()
-//                .map(DoctorAvailabilityUtils::mapToResponse)
-//                .toList();
-//        return null;
+      if(saved.isEmpty()) {
+          return "failed to save availability";
+      }
+      return "successfully saved availability";
     }
 
 
@@ -118,7 +92,7 @@ public class DoctorAvailabilityService {
 
 
 
-    public AssignDoctorSpecialtiesResponse getDoctorAvailability(Integer doctorId) {
+    public AssignDoctorSpecialtiesResponse getDoctorDetails(Integer doctorId) {
 
         // 1. Fetch doctor
         Doctor doctor = doctorRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
@@ -126,16 +100,23 @@ public class DoctorAvailabilityService {
         // 2. Fetch all existing availability ONCE
         List<DoctorAvailability> existingAvailability = doctorAvailabilityRepository.findByDoctorId(doctorId);
 
+        List<DoctorSpecialtyMap> existingAssociations = doctorSpecialtyRepository.findByDoctorId(doctorId);
+        //  Map specialties
+        List<SpecialtyResponse> specialtyResponses =
+                existingAssociations.stream()
+                        .map(DoctorSpecialtyMap::getSpecialty)
+                        .map(SpecialityUtils::mapToSpecialityResponse)
+                        .toList();
+
          //Convert to response
         //  Map doctor
         DoctorResponse doctorResponse =
                 DoctorUtils.mapToDoctorResponse(doctor);
-
         List<DoctorAvailabilityResponse> list = existingAvailability.stream().map(DoctorAvailabilityUtils::mapToResponse).toList();
         //  Return response
         return new AssignDoctorSpecialtiesResponse(
                 doctorResponse,
-                null,
+                specialtyResponses,
                 list
         );
     }
