@@ -45,7 +45,13 @@ public class DoctorSpecialtyService {
 
         // Verify that all specialties are active.
         if (specialties.size() != specialtyIds.size()) {
-            throw new ResourceNotFoundException("One or more specialties do not exist or are inactive");
+            Set<Integer> existingSpecialtyIds = specialties.stream()
+                    .map(Specialty::getId).collect(Collectors.toSet());
+
+            Set<Integer> missingSpecialtyIds = new HashSet<>(specialtyIds);
+            missingSpecialtyIds.removeAll(existingSpecialtyIds);
+
+            throw new ResourceNotFoundException("This ids "+missingSpecialtyIds+" specialties  do not exist or are inactive");
         }
 
      // 5. Get doctor's existing active associations
