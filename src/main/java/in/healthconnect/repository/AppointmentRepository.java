@@ -2,6 +2,8 @@ package in.healthconnect.repository;
 
 import in.healthconnect.entity.Appointment;
 import in.healthconnect.entity.enums.AppointmentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +26,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             """)
     boolean existsOverlappingAppointment(@Param("doctorId") Integer doctorId, @Param("appointmentDate") LocalDate appointmentDate, @Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime, @Param("cancelledStatus") AppointmentStatus cancelledStatus);
 
+    Page<Appointment> findByDoctorIdAndAppointmentDate(Integer doctorId, LocalDate appointmentDate, Pageable pageable);
+
+     Page<Appointment> findByDoctorId(Integer doctorId,Pageable pageable);
 }
