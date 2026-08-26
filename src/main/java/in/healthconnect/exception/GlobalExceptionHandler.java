@@ -1,8 +1,6 @@
-package in.healthconnect;
+package in.healthconnect.exception;
 
-import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.wrapper.ApiResponse;
-import in.healthconnect.exception.EmailExistException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

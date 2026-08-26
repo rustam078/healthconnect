@@ -1,4 +1,4 @@
-package in.healthconnect;
+package in.healthconnect.specificationFilter;
 
 import in.healthconnect.dto.request.DoctorFilterDto;
 import in.healthconnect.entity.Doctor;

@@ -1,6 +1,6 @@
 package in.healthconnect.service;
 
-import in.healthconnect.PatientSpecification;
+import in.healthconnect.specificationFilter.PatientSpecification;
 import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
 import in.healthconnect.dto.response.PatientResponse;
