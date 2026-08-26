@@ -11,6 +11,7 @@ import in.healthconnect.repository.DoctorAvailabilityRepository;
 import in.healthconnect.repository.DoctorRepository;
 import in.healthconnect.repository.PatientRepository;
 import in.healthconnect.utils.AppointmentUtils;
+import in.healthconnect.utils.CommonUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,9 +46,13 @@ public class AppointmentService {
         //end time cal
         LocalTime endTime = request.getStartTime().plusMinutes(request.getDurationMinutes());
 
-        validateDoctorAvailability(doctorRepository.findById(request.getDoctorId()).get(),request.getAppointmentDate(),request.getStartTime(),endTime);
+        // FIRST → date/time validation
+         CommonUtils.validateDateAndTime(request.getAppointmentDate(), request.getStartTime());
+
+        validateDoctorAvailability(doctor,request.getAppointmentDate(),request.getStartTime(),endTime);
 
         validateAppointmentConflict(request.getDoctorId(), request.getAppointmentDate(), request.getStartTime(), endTime);
+
 
         //create appointment
         Appointment appointment = Appointment.builder()
