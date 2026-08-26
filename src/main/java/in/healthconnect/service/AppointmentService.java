@@ -45,6 +45,7 @@ public class AppointmentService {
         Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElseThrow(() ->
                 new ResourceNotFoundException("Doctor with id '" + request.getDoctorId() + "' does not exist"));
 
+        validateAppointmentConflict(request.getDoctorId(), request.getAppointmentDate(), request.getStartTime(), endTime);
 
         //create appointment
         Appointment appointment = Appointment.builder()
@@ -83,4 +84,15 @@ public class AppointmentService {
             throw new IllegalArgumentException("Doctor is on break during the requested appointment time");
         }
     }
+
+
+    private void validateAppointmentConflict(Integer doctorId, LocalDate appointmentDate, LocalTime startTime, LocalTime endTime) {
+
+        boolean conflict = appointmentRepository.existsOverlappingAppointment(doctorId, appointmentDate, startTime, endTime, AppointmentStatus.CANCELLED);
+
+        if (conflict) {
+            throw new IllegalArgumentException("Doctor already has an appointment during the requested time");
+        }
+    }
+
 }
