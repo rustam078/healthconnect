@@ -7,12 +7,14 @@ import in.healthconnect.entity.Doctor;
 import in.healthconnect.entity.DoctorAvailability;
 import in.healthconnect.entity.Patient;
 import in.healthconnect.entity.enums.AppointmentStatus;
+import in.healthconnect.exception.AppointmentConflictException;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.AppointmentRepository;
 import in.healthconnect.repository.DoctorAvailabilityRepository;
 import in.healthconnect.repository.DoctorRepository;
 import in.healthconnect.repository.PatientRepository;
 import in.healthconnect.utils.AppointmentUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
@@ -30,20 +32,21 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final DoctorAvailabilityRepository doctorAvailabilityRepository;
 
+    @Transactional
     public AppointmentResponse createAppointment(CreateAppointmentRequest request) {
-
-        //end time cal
-        LocalTime endTime = request.getStartTime().plusMinutes(request.getDurationMinutes());
-
-        validateDoctorAvailability(doctorRepository.findById(request.getDoctorId()).get(),request.getAppointmentDate(),request.getStartTime(),endTime);
 
         //patient find
         Patient patient = patientRepository.findById(request.getPatientId()).orElseThrow(() ->
                 new ResourceNotFoundException("Patient with id '" + request.getPatientId() + "' does not exist"));
 
          //doctor find
-        Doctor doctor = doctorRepository.findById(request.getDoctorId()).orElseThrow(() ->
+        Doctor doctor = doctorRepository.findActiveDoctorForUpdate(request.getDoctorId()).orElseThrow(() ->
                 new ResourceNotFoundException("Doctor with id '" + request.getDoctorId() + "' does not exist"));
+
+        //end time cal
+        LocalTime endTime = request.getStartTime().plusMinutes(request.getDurationMinutes());
+
+        validateDoctorAvailability(doctorRepository.findById(request.getDoctorId()).get(),request.getAppointmentDate(),request.getStartTime(),endTime);
 
         validateAppointmentConflict(request.getDoctorId(), request.getAppointmentDate(), request.getStartTime(), endTime);
 
@@ -91,7 +94,7 @@ public class AppointmentService {
         boolean conflict = appointmentRepository.existsOverlappingAppointment(doctorId, appointmentDate, startTime, endTime, AppointmentStatus.CANCELLED);
 
         if (conflict) {
-            throw new IllegalArgumentException("Doctor already has an appointment during the requested time");
+            throw new AppointmentConflictException("Doctor already has an appointment during the requested time");
         }
     }
 
