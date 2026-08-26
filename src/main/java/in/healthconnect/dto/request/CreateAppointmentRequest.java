@@ -26,7 +26,6 @@ public class CreateAppointmentRequest {
     private LocalDate appointmentDate;
 
     @NotNull(message = "Start time is required")
-    @Future(message = "Appointment time must be a future time")
     private LocalTime startTime;
 
     @NotNull(message = "Duration is required")
