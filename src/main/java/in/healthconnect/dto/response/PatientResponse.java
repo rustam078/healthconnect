@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PatientResponse {
+private Integer id;
 private String patientCode;
 private String firstName;
 private String lastName;

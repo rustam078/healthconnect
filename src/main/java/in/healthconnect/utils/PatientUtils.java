@@ -22,6 +22,7 @@ public class PatientUtils {
         ).getYears();
 
         return PatientResponse.builder()
+                .id(patient.getId())
                 .patientCode(patient.getPatientCode())
                 .firstName(patient.getFirstName())
                 .lastName(patient.getLastName())
