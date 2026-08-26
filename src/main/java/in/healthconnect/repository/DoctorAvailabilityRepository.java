@@ -16,4 +16,6 @@ public interface DoctorAvailabilityRepository
             Integer doctorId, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime);
 
     List<DoctorAvailability> findByDoctorId(Integer doctorId);
+
+    List<DoctorAvailability> findByDoctorIdAndDayOfWeek(Integer doctorId, DayOfWeek dayOfWeek);
 }
