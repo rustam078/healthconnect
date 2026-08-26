@@ -120,4 +120,14 @@ public class DoctorAvailabilityService {
                 list
         );
     }
+
+    public void deleteDoctorAvailability(Integer doctorId, Integer availabilityId) {
+
+        DoctorAvailability availability = doctorAvailabilityRepository.findById(availabilityId).orElseThrow(() -> new ResourceNotFoundException("Doctor availability not found with id: " + availabilityId));
+
+        if (!availability.getDoctor().getId().equals(doctorId)) {
+            throw new ResourceNotFoundException("Availability does not belong to this doctor");
+        }
+        doctorAvailabilityRepository.delete(availability);
+    }
 }
