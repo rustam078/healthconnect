@@ -186,6 +186,15 @@ public class GlobalExceptionHandler {
     }
 
 
+    // 409 - Appointment Already Exists
+    @ExceptionHandler(AppointmentConflictException.class)
+    public ResponseEntity<ApiResponse<Void>> AppointmentConflict(AppointmentConflictException ex) {
+        log.debug("Appointment already exists: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(ex.getMessage()));
+    }
+
+
+
     // 405 - Method Not Allowed
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiResponse<Void>> handleMethodNotAllowed(
