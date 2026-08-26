@@ -1,11 +1,8 @@
 package in.healthconnect.service;
 
 import in.healthconnect.dto.request.CreateAppointmentRequest;
-import in.healthconnect.dto.response.AppointmentResponse;
-import in.healthconnect.entity.Appointment;
-import in.healthconnect.entity.Doctor;
-import in.healthconnect.entity.DoctorAvailability;
-import in.healthconnect.entity.Patient;
+import in.healthconnect.dto.response.*;
+import in.healthconnect.entity.*;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.exception.AppointmentConflictException;
 import in.healthconnect.exception.ResourceNotFoundException;
@@ -16,6 +13,8 @@ import in.healthconnect.repository.PatientRepository;
 import in.healthconnect.utils.AppointmentUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -98,4 +97,17 @@ public class AppointmentService {
         }
     }
 
+
+    public Page<AppointmentResponse> getAllAppointmentsByDoctorId(Integer doctorId,LocalDate appointmentDate, Pageable pageable) {
+
+        doctorRepository.findById(doctorId).orElseThrow(() -> new ResourceNotFoundException("Doctor with id '" + doctorId + "' does not exist"));
+        Page<Appointment> appointments;
+        if(appointmentDate != null) {
+             appointments = appointmentRepository.findByDoctorIdAndAppointmentDate(doctorId, appointmentDate, pageable);
+        }else {
+            appointments =  appointmentRepository.findByDoctorId(doctorId, pageable);
+        }
+
+        return appointments.map(AppointmentUtils::mapToAppointmentResponse);
+    }
 }
