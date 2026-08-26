@@ -21,6 +21,7 @@ public class CreateAppointmentRequest {
     @Positive(message = "Doctor ID must be positive")
     private Integer doctorId;
 
+    @FutureOrPresent(message = "Appointment date must a future date")
     @NotNull(message = "Appointment date is required")
     private LocalDate appointmentDate;
 
