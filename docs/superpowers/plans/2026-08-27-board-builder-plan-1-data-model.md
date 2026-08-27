@@ -60,6 +60,22 @@ Board "Rustam board" holds **14 widgets** in the legacy shape. It is the accepta
 
 ### Task 1: Spike — does `react-grid-layout` work on React 19?
 
+> ### ✅ Spike result (2026-08-27): PASS, but the API is not what the steps below assume
+>
+> `react-grid-layout@2.2.4` installs cleanly on React 19 (no `ERESOLVE`), has **no
+> `findDOMNode`** anywhere in its build, and drag + resize both work — a dragged item
+> pushes its neighbours down and `onLayoutChange` reports `{i,x,y,w,h}` correctly.
+>
+> **But v2 rewrote the props.** `WidthProvider` exists only under the `react-grid-layout/legacy`
+> entry point; the modern API is the `useContainerWidth()` hook, and `cols`/`rowHeight`/`margin`/
+> `isDraggable`/`isResizable`/`compactType` have all moved into config objects. The Step 2 and
+> Step 3 code below is the **v1 API and does not work** — it silently falls back to defaults
+> (12 columns, 150px rows). Task 4 Step 2 carries the corrected version; use that.
+>
+> Steps 1–6 of this task are complete. Step 6's commit was **skipped**: `package.json` also
+> carries the user's `chart.js` and `react-chartjs-2` additions, so committing it would sweep
+> in their work.
+
 Throwaway. Nothing from this task is committed. Its only output is an answer and three confirmed facts.
 
 **Why first:** v2.2.4's peer deps are open (`react >= 16.3.0`), which does not prove React 19 support, and 1.x relied on `findDOMNode`, which React 19 removed. Every later task assumes this library works. Find out in twenty minutes, not after `BoardGrid` is written.
@@ -775,12 +791,27 @@ export function toSavePayload(items = []) {
 
 - [ ] **Step 2: Write `BoardGrid`**
 
-Create `src/features/dashboard/BoardGrid.jsx`. **Use the import form Task 1 confirmed** — the one below is the expected form:
+> **The v1 API most examples show does not exist in v2.** Task 1's spike established the
+> real one, and these are the differences that matter:
+>
+> | v1 (everywhere online) | v2.2.4 (what we have) |
+> |---|---|
+> | `WidthProvider(GridLayout)` | `useContainerWidth()` hook |
+> | `cols` / `rowHeight` / `margin` props | all inside `gridConfig={{...}}` |
+> | `isDraggable` / `isResizable` | `dragConfig={{enabled}}` / `resizeConfig={{enabled}}` |
+> | `compactType="vertical"` | `compactor={verticalCompactor}` |
+> | `draggableCancel=".x"` | `dragConfig={{cancel: '.x'}}` |
+>
+> **`measureBeforeMount: true` is not optional.** Without it the hook reports its default
+> width of **1280** on first render, and every item is sized for a 1280px container —
+> in an 891px board that means the third column hangs off the edge. Verified in the spike.
+
+Create `src/features/dashboard/BoardGrid.jsx`:
 
 ```jsx
 import { useMemo } from 'react'
 import { Empty } from 'antd'
-import GridLayout, { WidthProvider } from 'react-grid-layout'
+import GridLayout, { useContainerWidth, verticalCompactor } from 'react-grid-layout'
 import WidgetCard from './WidgetCard.jsx'
 import { COLS, ROW_HEIGHT } from './boardLayout.js'
 import 'react-grid-layout/css/styles.css'
@@ -789,12 +820,15 @@ import 'react-resizable/css/styles.css'
 // Draws the widgets of one board on a 3-column grid.
 //
 // Read-only for now: dragging and resizing arrive in the next round, at which point this
-// component gains an `editable` prop and flips isDraggable/isResizable. Rendering view and
+// component gains an `editable` prop and flips dragConfig/resizeConfig. Rendering view and
 // edit through the SAME component is deliberate - it means the board cannot shift position
 // when you enter edit mode.
-const Grid = WidthProvider(GridLayout)
-
+//
+// measureBeforeMount: true matters. Without it useContainerWidth reports its default width
+// of 1280 on the first render and the third column hangs off the edge of the board.
 export default function BoardGrid({ items = [], onRemove, onWidthChange }) {
+  const { width, containerRef, mounted } = useContainerWidth({ measureBeforeMount: true })
+
   // react-grid-layout wants its own array, keyed by a STRING id.
   const layout = useMemo(
     () =>
@@ -815,25 +849,31 @@ export default function BoardGrid({ items = [], onRemove, onWidthChange }) {
   }
 
   return (
-    <Grid
-      className="layout"
-      layout={layout}
-      cols={COLS}
-      rowHeight={ROW_HEIGHT}
-      margin={[16, 16]}
-      compactType="vertical"
-      isDraggable={false}
-      isResizable={false}
-    >
-      {items.map((item) => (
-        <div key={String(item.widgetId)}>
-          <WidgetCard item={item} onRemove={onRemove} onWidthChange={onWidthChange} />
-        </div>
-      ))}
-    </Grid>
+    <div ref={containerRef}>
+      {mounted && (
+        <GridLayout
+          className="layout"
+          layout={layout}
+          width={width}
+          gridConfig={{ cols: COLS, rowHeight: ROW_HEIGHT, margin: [16, 16] }}
+          dragConfig={{ enabled: false }}
+          resizeConfig={{ enabled: false }}
+          compactor={verticalCompactor}
+        >
+          {items.map((item) => (
+            <div key={String(item.widgetId)}>
+              <WidgetCard item={item} onRemove={onRemove} onWidthChange={onWidthChange} />
+            </div>
+          ))}
+        </GridLayout>
+      )}
+    </div>
   )
 }
 ```
+
+> Both hooks are called before the `items.length === 0` early return, which is required —
+> React does not allow a hook to be skipped on some renders.
 
 - [ ] **Step 3: Rewire `DashboardPage`**
 
