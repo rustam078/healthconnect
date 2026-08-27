@@ -3,6 +3,7 @@ package in.healthconnect.exception;
 import in.healthconnect.wrapper.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -165,6 +166,33 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
+
+    // 409 - the write clashed with data that is already there (a duplicate unique value,
+    // or a row another record still points at).
+    //
+    // The database message names tables, columns and constraints, so it is logged but NEVER
+    // returned. The client gets something it can actually show a user.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(
+            DataIntegrityViolationException ex) {
+
+        log.error("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+
+        String message = isDuplicate(ex)
+                ? "Something with that name already exists. Try a slightly different wording."
+                : "This could not be saved because it conflicts with existing data.";
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(message));
+    }
+
+    // Tell a duplicate-key clash apart from other integrity failures (foreign keys,
+    // not-null), so the message can be specific instead of vague.
+    private boolean isDuplicate(DataIntegrityViolationException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        return cause != null && cause.toLowerCase().contains("duplicate entry");
+    }
 
     // 502 - the upstream AI provider failed or sent something unusable
     @ExceptionHandler(AiProviderException.class)

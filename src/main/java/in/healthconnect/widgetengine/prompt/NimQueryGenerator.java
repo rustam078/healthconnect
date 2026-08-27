@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -88,11 +89,29 @@ public class NimQueryGenerator implements QueryGenerator {
             throw new AiProviderException(
                     "The AI provider rejected the request (" + ex.getStatusCode() + "). "
                             + "Check the nim.model and nim.api-key settings.", ex);
+        } catch (RestClientException ex) {
+            // Never reached the provider at all, or it did not answer in time. This is a
+            // DIFFERENT exception type from the one above - a timeout is not an HTTP error
+            // response - and without this branch it fell through as a bare 500.
+            log.error("NIM call did not complete: model={} cause={}", model, ex.toString());
+            throw new AiProviderException(
+                    "Could not reach the AI provider (" + rootCauseOf(ex) + "). "
+                            + "It may be slow or unavailable - try again.", ex);
         }
 
         return extractText(response);
     }
 
+
+    // The innermost cause, which is what actually says "timed out" or "connection refused".
+    private static String rootCauseOf(Throwable ex) {
+        Throwable cause = ex;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        String message = cause.getMessage();
+        return message == null || message.isBlank() ? cause.getClass().getSimpleName() : message;
+    }
     // Read choices[0].message.content out of NIM's JSON reply.
     String extractText(String responseJson) {
         JsonNode content = objectMapper.readTree(responseJson)
