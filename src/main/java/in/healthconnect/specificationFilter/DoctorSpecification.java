@@ -2,7 +2,10 @@ package in.healthconnect.specificationFilter;
 
 import in.healthconnect.dto.request.DoctorFilterDto;
 import in.healthconnect.entity.Doctor;
+import in.healthconnect.entity.DoctorSpecialtyMap;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -65,6 +68,7 @@ public final class DoctorSpecification {
                                 searchValue
                         );
 
+
                 predicates.add(
                         criteriaBuilder.or(
                                 firstNamePredicate,
@@ -86,6 +90,45 @@ public final class DoctorSpecification {
                                 criteriaBuilder.lower(root.get("qualification")),
                                 "%" + doctorFilterDto.getQualification().trim().toLowerCase() + "%"
                         )
+                );
+            }
+
+
+
+            /*
+             * Specialty filter
+             */
+            if (StringUtils.hasText(doctorFilterDto.getSpecialties())) {
+
+                String specialtyName =
+                        "%" + doctorFilterDto.getSpecialties().trim().toLowerCase() + "%";
+
+                Subquery<Integer> specialtySubquery = query.subquery(Integer.class);  //
+
+                Root<DoctorSpecialtyMap> doctorSpecialtyRoot = specialtySubquery.from(DoctorSpecialtyMap.class);
+
+                specialtySubquery.select(doctorSpecialtyRoot.get("id"));
+
+                specialtySubquery.where(
+                        criteriaBuilder.and(
+
+                                // Mapping belongs to current doctor
+                                criteriaBuilder.equal(
+                                        doctorSpecialtyRoot.get("doctor").get("id"), root.get("id")),
+
+                                // Specialty name matches
+                                criteriaBuilder.like(
+                                        criteriaBuilder.lower(
+                                                doctorSpecialtyRoot.get("specialty").get("name")), specialtyName),
+
+                                // Specialty is not deleted
+                                criteriaBuilder.equal(
+                                        doctorSpecialtyRoot.get("specialty").get("deleted"), false)
+                        )
+                );
+
+                predicates.add(
+                        criteriaBuilder.exists(specialtySubquery)
                 );
             }
 

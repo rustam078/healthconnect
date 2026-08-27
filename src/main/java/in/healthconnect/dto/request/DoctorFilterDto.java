@@ -1,5 +1,6 @@
 package in.healthconnect.dto.request;
 
+import in.healthconnect.entity.Specialty;
 import in.healthconnect.entity.enums.Gender;
 import lombok.Data;
 
@@ -14,4 +15,5 @@ public class DoctorFilterDto {
     private Integer maxExperience;
     private BigDecimal minConsultationFee;
     private BigDecimal maxConsultationFee;
+    private String specialties;
 }
