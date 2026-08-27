@@ -1316,3 +1316,64 @@ git status --short src/features/dashboard/
 - **An approved AI widget stays on the board it was created from only.** The gallery now lists PROMPT widgets, so this limitation from the spec is actually resolved — an AI widget can be added to any board.
 - **No responsive breakpoints.** The grid is fixed at 3 columns at every screen size, per the spec's out-of-scope list.
 - **No undo/redo** in the builder. Cancel is the only escape.
+
+---
+
+## Findings during execution (2026-08-27)
+
+### 1. Task 1 was not independently buildable — the plan was wrong
+
+Task 1 deletes `nextPosition` and `setWidth` from `boardLayout.js`, but `DashboardPage`
+still imports them until Task 4 rewrites it. So the build breaks at Task 1, not Task 2 as
+the plan claimed. Nothing was harmed — Tasks 1–4 are one compile unit and verify together
+at the end of Task 4 — but a plan that says "the app still builds" should be right about it.
+
+### 2. Vite HMR goes stale under rapid whole-file rewrites
+
+After rewriting nine files in quick succession the dev server kept serving old modules:
+`ReferenceError: signature is not defined` from a `BoardGrid` that no longer contained the
+word, and `does not provide an export named 'default'` for `DashboardPage`. The production
+build was clean throughout, which is what proved it was the server and not the source.
+
+Recovery: `rm -rf node_modules/.vite`, `touch` the rewritten files, and open a **new tab**.
+Reloading the existing tab was not enough.
+
+### 3. A hidden browser pane freezes CSS transitions — do not read that as a bug
+
+This cost the most time and produced a wrong diagnosis. After "Add selected", the gallery
+modal appeared stuck open: `Cancel` did not close it, and neither did antd's own X. The
+modal was in fact **closing correctly** — its classes were `ant-zoom-leave ant-zoom-leave-start`
+and the mask's `ant-fade-leave-start`. The pane was hidden, so the page composites no
+frames, the leave transition never advances, and the node is never removed.
+
+**Check the element's classes, not its presence.** `ant-*-leave` means React already set
+`open={false}`. The same applies to any antd component with an exit animation.
+
+Related: `setTimeout` is throttled to roughly one second in a hidden tab, so polling loops
+like `for (i<40) await sleep(500)` blow the 30-second tool budget. Query the DOM directly,
+or keep loops to a handful of iterations.
+
+### 4. Synthetic drags need real gaps between mousemove events
+
+Firing `mousedown` and ten `mousemove`s back-to-back moved nothing: `react-draggable` has a
+3px threshold and needs the events spread over separate ticks. Roughly 30ms between moves
+worked. Also, `document.elementFromPoint` returns `null` for anything below the fold, so
+scroll the target into view or pick one that is already visible.
+
+### What was verified
+
+Drag (moved across two columns, all 13 cards still mounted, no snap-back), resize, the
+gallery (17 cards, 13 disabled, live previews on every card, 0 "Preview unavailable"),
+multi-select packing two widgets onto one row, Save persisting, Cancel discarding via a
+confirm dialog, and AI-only delete (3 AI cards with a trash button, **0** hand-built ones;
+deleting one returned 404 and left the others at 200).
+
+### Board state
+
+Restored to the exact 13-widget layout recorded before execution — verified by `diff`
+against the pre-execution capture.
+
+### Still true, still worth doing
+
+There is no frontend test runner. `useBoardDraft`, `appendPacked` and `applyRglLayout` are
+pure functions that would be far cheaper to check with Vitest than through a browser.
