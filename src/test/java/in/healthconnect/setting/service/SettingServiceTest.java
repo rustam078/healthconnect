@@ -1,6 +1,7 @@
 package in.healthconnect.setting.service;
 
 import in.healthconnect.exception.ResourceNotFoundException;
+import in.healthconnect.exception.SettingNotConfiguredException;
 import in.healthconnect.setting.dto.request.AppSettingRequest;
 import in.healthconnect.setting.dto.response.AppSettingResponse;
 import in.healthconnect.setting.entity.AppSetting;
@@ -73,7 +74,7 @@ class SettingServiceTest {
     void getRequiredThrowsWhenMissing() {
         when(repository.findByName("nim.api-key")).thenReturn(Optional.empty());
 
-        IllegalStateException error = assertThrows(IllegalStateException.class,
+        SettingNotConfiguredException error = assertThrows(SettingNotConfiguredException.class,
                 () -> service.getRequired("nim.api-key"));
         assertTrue(error.getMessage().contains("nim.api-key"));
     }
@@ -83,7 +84,7 @@ class SettingServiceTest {
         when(repository.findByName("nim.api-key"))
                 .thenReturn(Optional.of(stored("nim.api-key", "nvapi-x", false)));
 
-        assertThrows(IllegalStateException.class, () -> service.getRequired("nim.api-key"));
+        assertThrows(SettingNotConfiguredException.class, () -> service.getRequired("nim.api-key"));
     }
 
     @Test
@@ -91,7 +92,7 @@ class SettingServiceTest {
         when(repository.findByName("nim.api-key"))
                 .thenReturn(Optional.of(stored("nim.api-key", "   ", true)));
 
-        assertThrows(IllegalStateException.class, () -> service.getRequired("nim.api-key"));
+        assertThrows(SettingNotConfiguredException.class, () -> service.getRequired("nim.api-key"));
     }
 
     @Test

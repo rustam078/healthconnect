@@ -1,6 +1,7 @@
 package in.healthconnect.setting.service;
 
 import in.healthconnect.exception.ResourceNotFoundException;
+import in.healthconnect.exception.SettingNotConfiguredException;
 import in.healthconnect.setting.dto.request.AppSettingRequest;
 import in.healthconnect.setting.dto.response.AppSettingResponse;
 import in.healthconnect.setting.entity.AppSetting;
@@ -77,7 +78,7 @@ public class SettingService {
     public String getRequired(String name) {
         String value = rawValue(name);
         if (value == null) {
-            throw new IllegalStateException(
+            throw new SettingNotConfiguredException(
                     "Setting '" + name + "' is not configured. Add it under /api/v1/settings.");
         }
         return value;

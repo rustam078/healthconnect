@@ -166,6 +166,19 @@ public class GlobalExceptionHandler {
     }
 
 
+    // 503 - a required application setting has not been configured yet
+    @ExceptionHandler(SettingNotConfiguredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSettingNotConfigured(
+            SettingNotConfiguredException ex) {
+
+        log.error("Setting not configured: {}", ex.getMessage());
+
+        // The message names the setting to add, so it is safe and useful to pass through.
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     // 409 - Email Already Exists
     @ExceptionHandler(EmailExistException.class)
     public ResponseEntity<ApiResponse<Void>> handleEmailExist(
