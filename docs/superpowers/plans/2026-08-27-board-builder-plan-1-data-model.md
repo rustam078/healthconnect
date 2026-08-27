@@ -1123,3 +1123,46 @@ git commit src/features/dashboard/WidgetCard.jsx -m "fix(dashboard): let cards a
 ## Not in this plan
 
 Drag, resize, the widget gallery with previews, multi-select, deleting AI widgets from the library, view/edit modes, explicit Save/Cancel, and removing the Segmented control. All of that is **Plan 2**, which assumes this plan's data model and `BoardGrid`.
+
+---
+
+## Findings during execution (2026-08-27) — read before Plan 2
+
+Two things this plan did not anticipate. Both were caught by the browser verification in
+Task 5, not by any test.
+
+### 1. `react-grid-layout` treats `layout` as INITIAL state only
+
+`GridLayout` copies the `layout` prop on mount and then manages its own internal state.
+Changing the prop afterwards does nothing — `useGridLayout`'s own docs label the same
+option *"Initial layout"*. Symptom: a width change saved correctly to the server and the
+board still showed the old size until a reload.
+
+`BoardGrid` works around it by deriving a `signature` string from every item's
+`widgetId,x,y,w,h` and passing it as `key`, remounting the grid whenever the saved layout
+changes. That is safe in a **read-only** grid because there is no in-progress drag to lose.
+
+**Plan 2 must not simply keep this.** In edit mode the grid itself becomes the source of
+truth via `onLayoutChange`, and remounting mid-drag would throw away the interaction.
+Plan 2 should either key only on add/remove (not on position changes), or drive the grid
+with the `useGridLayout` hook, which exposes `setLayout` for exactly this.
+
+A side effect worth knowing: remounting unmounts every `WidgetCard`, and React Query
+refetches on mount by default. `useWidgetData` therefore now sets `staleTime: 60_000`, so
+resizing one card no longer refetches all thirteen.
+
+### 2. A field rename is not done until the consumers are checked
+
+`BoardResponse.Item.width` became `w`, but `WidgetCard` still bound
+`value={item.width}` on its Segmented control. `undefined` made antd fall back to showing
+"1" on every card regardless of real width — so the control silently lied, and clicking the
+value it already displayed fired no change at all. Fixed to `item.w`.
+
+The lesson for Plan 2, which deletes `width` handling entirely and adds `editable`:
+`grep -rn "\.width" src/features/dashboard/` after the rename, rather than trusting that
+the compiler-less frontend will complain. It will not.
+
+### Board state
+
+The user's board was restored to its exact original layout after testing
+(13 widgets, `2+1` then four rows of `1+1+1`/`1+1`). Verified against the API.
