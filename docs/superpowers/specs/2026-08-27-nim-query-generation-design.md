@@ -29,7 +29,7 @@ restart. We want credentials in the database instead, manageable over HTTP.
 | 2 | Review flow | Generate → preview SQL + rows → approve on add | Reuses the DRAFT/approve design already built; keeps broken queries off the board |
 | 3 | Widget type for AI drafts | Always `TABLE` | Already what `SqlDraftService` does; no backend change needed |
 | 4 | Gemini | Replace, don't keep | One provider to maintain; `QueryGenerator` keeps the seam if another is ever needed |
-| 5 | Model | `qwen/qwen2.5-coder-32b-instruct` | Code-specialised, strong text-to-SQL, fast. Swappable via a settings row |
+| 5 | Model | ~~`qwen/qwen2.5-coder-32b-instruct`~~ → **`nvidia/nemotron-3-super-120b-a12b`** | The first choice was retired by NIM on 2026-05-12; see Correction 5. Swappable via a settings row |
 | 6 | Settings shape | One row per value (`nim.api-key`, `nim.model`, …) | Keeps the table generic; secret-masking works per value |
 | 7 | Settings UI | Endpoints only this round | A settings screen is its own feature; one curl unblocks development |
 
@@ -154,8 +154,8 @@ Everything downstream is unchanged: `SqlDraftService` cleans the answer (`SqlCle
 checks it is a safe SELECT (`SqlSafetyGuard`), and stores it as a `DRAFT` `PROMPT` widget.
 **AI output is still never trusted.**
 
-**Unverified assumption:** NIM accepts `temperature: 0` for this model. If the live call
-rejects it, use `0.01` and record that here.
+**Verified 2026-08-27:** NIM accepts `temperature: 0` for `nvidia/nemotron-3-super-120b-a12b`.
+The `0.01` fallback was not needed.
 
 ### 3. Config cleanup
 
@@ -308,3 +308,16 @@ Recorded here so the spec matches what was actually built.
 4. **Additional stale references cleaned up.** Deleting the two generators left dangling
    references in `QueryGenerator.java`, `PromptService.java`, `DESIGN.md`, `API_GUIDE.md`,
    and the journal's Step 8. All corrected.
+5. **Both recommended models were dead.** `qwen/qwen2.5-coder-32b-instruct` returned
+   **410 Gone** ("end of life on 2026-05-12"), and the fallback suggestion
+   `meta/llama-3.3-70b-instruct` is no longer in NIM's catalogue at all. Worse,
+   `GET /v1/models` is not a reliable availability check: `nvidia/llama-3.1-nemotron-70b-instruct`
+   and `mistralai/codestral-22b-instruct-v0.1` are both listed and both returned **404** for
+   this account. The working model is **`nvidia/nemotron-3-super-120b-a12b`**, found by
+   `PUT`-ing candidates into the `nim.model` row — no code change, which is precisely what
+   the settings-table decision was for.
+6. **NIM errors were invisible.** `RestClient.retrieve()` throws
+   `RestClientResponseException`, which fell to the catch-all handler as a bare 500 with
+   nothing logged, so the 410 above was undiagnosable. `NimQueryGenerator` now catches it,
+   logs `model / status / body` (never the key), and rethrows a message pointing at the
+   `nim.model` and `nim.api-key` settings.

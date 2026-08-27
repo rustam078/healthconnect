@@ -1,10 +1,13 @@
 package in.healthconnect.widgetengine.prompt;
 
 import in.healthconnect.setting.service.SettingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -20,6 +23,10 @@ import java.util.Map;
 // changed over HTTP without a restart and are never committed to git. If no key is
 // configured, getRequired throws a clear error naming the setting to add.
 //
+// Model availability changes: NIM retires models, and a model listed in GET /v1/models
+// can still 404 if it is not provisioned for your account. Because the model is a setting,
+// swapping it is a PUT to /api/v1/settings - never a code change.
+//
 // Whatever comes back is still untrusted: SqlDraftService cleans it (SqlCleaner) and
 // SqlSafetyGuard rejects anything that is not a single SELECT.
 @Component
@@ -29,8 +36,10 @@ public class NimQueryGenerator implements QueryGenerator {
     static final String MODEL_SETTING = "nim.model";
     static final String BASE_URL_SETTING = "nim.base-url";
 
-    static final String DEFAULT_MODEL = "qwen/qwen2.5-coder-32b-instruct";
+    static final String DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b";
     static final String DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1";
+
+    private static final Logger log = LoggerFactory.getLogger(NimQueryGenerator.class);
 
     private final ObjectMapper objectMapper;
     private final SettingService settingService;
@@ -59,14 +68,26 @@ public class NimQueryGenerator implements QueryGenerator {
                 "stream", false
         );
 
-        String response = RestClient.create()
-                .post()
-                .uri(baseUrl + "/chat/completions")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(String.class);
+        String response;
+        try {
+            response = RestClient.create()
+                    .post()
+                    .uri(baseUrl + "/chat/completions")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .body(String.class);
+        } catch (RestClientResponseException ex) {
+            // NIM said no. Its body explains why (bad key, unknown model, bad parameter),
+            // and without this the caller only ever sees a generic 500.
+            // The API key is never logged.
+            log.error("NIM call failed: model={} status={} body={}",
+                    model, ex.getStatusCode(), ex.getResponseBodyAsString());
+            throw new RuntimeException(
+                    "The AI provider rejected the request (" + ex.getStatusCode() + "). "
+                            + "Check the nim.model and nim.api-key settings.", ex);
+        }
 
         return extractText(response);
     }
