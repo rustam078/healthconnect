@@ -1,5 +1,6 @@
 package in.healthconnect.widgetengine.prompt;
 
+import in.healthconnect.exception.AiProviderException;
 import in.healthconnect.setting.service.SettingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +85,7 @@ public class NimQueryGenerator implements QueryGenerator {
             // The API key is never logged.
             log.error("NIM call failed: model={} status={} body={}",
                     model, ex.getStatusCode(), ex.getResponseBodyAsString());
-            throw new RuntimeException(
+            throw new AiProviderException(
                     "The AI provider rejected the request (" + ex.getStatusCode() + "). "
                             + "Check the nim.model and nim.api-key settings.", ex);
         }
@@ -99,7 +100,7 @@ public class NimQueryGenerator implements QueryGenerator {
                 .path("message").path("content");
 
         if (content.isMissingNode() || content.isNull()) {
-            throw new RuntimeException("NIM response did not contain any SQL text.");
+            throw new AiProviderException("NIM response did not contain any SQL text.");
         }
         return content.asString();
     }

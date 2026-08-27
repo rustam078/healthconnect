@@ -166,6 +166,19 @@ public class GlobalExceptionHandler {
     }
 
 
+    // 502 - the upstream AI provider failed or sent something unusable
+    @ExceptionHandler(AiProviderException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAiProvider(
+            AiProviderException ex) {
+
+        log.error("AI provider error: {}", ex.getMessage());
+
+        // Safe to pass through: it names the setting to check, not the provider payload.
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     // 503 - a required application setting has not been configured yet
     @ExceptionHandler(SettingNotConfiguredException.class)
     public ResponseEntity<ApiResponse<Void>> handleSettingNotConfigured(

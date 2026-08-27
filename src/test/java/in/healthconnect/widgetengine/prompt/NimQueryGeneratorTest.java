@@ -1,5 +1,6 @@
 package in.healthconnect.widgetengine.prompt;
 
+import in.healthconnect.exception.AiProviderException;
 import in.healthconnect.exception.SettingNotConfiguredException;
 import in.healthconnect.setting.service.SettingService;
 import org.junit.jupiter.api.Test;
@@ -45,11 +46,11 @@ class NimQueryGeneratorTest {
     void throwsWhenResponseHasNoContent() {
         String responseJson = "{ \"choices\": [ { \"message\": { \"role\": \"assistant\" } } ] }";
 
-        assertThrows(RuntimeException.class, () -> generator.extractText(responseJson));
+        assertThrows(AiProviderException.class, () -> generator.extractText(responseJson));
     }
 
     @Test
     void throwsWhenChoicesIsEmpty() {
-        assertThrows(RuntimeException.class, () -> generator.extractText("{ \"choices\": [] }"));
+        assertThrows(AiProviderException.class, () -> generator.extractText("{ \"choices\": [] }"));
     }
 }
