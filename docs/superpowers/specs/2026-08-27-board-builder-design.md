@@ -242,7 +242,8 @@ rather than in a service unit test.
    not prove support, and 1.x relied on `findDOMNode`, which React 19 removed. v2.2.4 is a
    recent major and very likely fine, but this is **unverified**. The first task is a
    throwaway spike: install, render three boxes, drag and resize one. If it fails, fall
-   back to `@dnd-kit` before anything depends on it.
+   back to `@dnd-kit` before anything depends on it. The spike is the **first task of
+   Plan 1**, because `BoardGrid` lands there.
 2. **The existing 14-widget board.** The first check after the backend change is that it
    still loads and looks the same. This is why normalization happens on read.
 3. **Chart.js in a resizable cell** — see above; handled in the plan, not left to be
