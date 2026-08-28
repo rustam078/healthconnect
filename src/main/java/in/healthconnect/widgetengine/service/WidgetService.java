@@ -39,8 +39,9 @@ public class WidgetService {
                     "The code '" + request.getCode() + "' is already taken"
                             + " (possibly by a widget that was deleted). Choose another.");
         }
-        // rule 2: the query must be a safe SELECT
-        safetyGuard.assertSelectOnly(request.getSqlTemplate());
+        // rule 2: the query must be a safe SELECT. Normalised first so the trailing ";" a.
+        String sqlTemplate = safetyGuard.normalize(request.getSqlTemplate());
+        safetyGuard.assertSelectOnly(sqlTemplate);
 
         Widget widget = new Widget();
         widget.setCode(request.getCode());
@@ -48,7 +49,7 @@ public class WidgetService {
         widget.setDescription(request.getDescription());
         widget.setModule(request.getModule());
         widget.setType(request.getType());
-        widget.setSqlTemplate(request.getSqlTemplate());
+        widget.setSqlTemplate(sqlTemplate);
         widget.setFilters(toJsonText(request.getFilters()));
         // if the client did not say, turn the widget on
         widget.setEnabled(request.getEnabled() == null ? Boolean.TRUE : request.getEnabled());
@@ -71,13 +72,14 @@ public class WidgetService {
         Widget widget = widgetRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Widget not found:" + id));
 
-        safetyGuard.assertSelectOnly(request.getSqlTemplate());
+        String sqlTemplate = safetyGuard.normalize(request.getSqlTemplate());
+        safetyGuard.assertSelectOnly(sqlTemplate);
 
         widget.setName(request.getName());
         widget.setDescription(request.getDescription());
         widget.setModule(request.getModule());
         widget.setType(request.getType());
-        widget.setSqlTemplate(request.getSqlTemplate());
+        widget.setSqlTemplate(sqlTemplate);
         widget.setFilters(toJsonText(request.getFilters()));
         if (request.getEnabled() != null) {
             widget.setEnabled(request.getEnabled());

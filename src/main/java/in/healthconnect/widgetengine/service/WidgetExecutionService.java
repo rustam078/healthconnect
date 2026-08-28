@@ -99,12 +99,13 @@ public class WidgetExecutionService {
     //      dashboard viewer cannot probe the schema; here the caller wrote the query and
     //      needs to be told the column is spelled wrong.
     public WidgetDataResponse dryRun(DryRunWidgetRequest request) {
-        safetyGuard.assertSelectOnly(request.getSqlTemplate());
+        String sqlTemplate = safetyGuard.normalize(request.getSqlTemplate());
+        safetyGuard.assertSelectOnly(sqlTemplate);
 
         // No filter rules and no filter values: leftover {{blanks}} become "=" and leftover
         // :names bind to null, which is exactly how an unfiltered saved widget runs.
         PreparedQuery prepared = templateEngine.build(QueryBuildRequest.builder()
-                .template(request.getSqlTemplate())
+                .template(sqlTemplate)
                 .pageNo(1)
                 .pageSize(request.getPageSize())
                 .build());
@@ -143,13 +144,16 @@ public class WidgetExecutionService {
 
     // Read the widget's settings and ask the engine to build the query.
     private PreparedQuery buildQuery(Widget widget, ExecuteWidgetRequest request) {
-        // extra safety: re-check the stored query is a read-only SELECT
-        safetyGuard.assertSelectOnly(widget.getSqlTemplate());
+        // extra safety: re-check the stored query is a read-only SELECT. Normalised on the
+        // way through so a widget saved before this rule - or inserted by hand in SQL -
+        // still runs instead of failing on its own trailing ";".
+        String template = safetyGuard.normalize(widget.getSqlTemplate());
+        safetyGuard.assertSelectOnly(template);
 
         FilterConfig config = filterConfigParser.parse(widget.getFilters());
 
         QueryBuildRequest buildRequest = QueryBuildRequest.builder()
-                .template(widget.getSqlTemplate())
+                .template(template)
                 .filters(toEngineFilters(request.getFilters()))
                 .rules(config.rules())
                 .sortableColumns(config.sortableColumns())
