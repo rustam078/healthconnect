@@ -86,7 +86,9 @@ public class AppointmentService {
             throw new IllegalArgumentException("Doctor is not available for the requested time");
         }
 
-        boolean duringBreak = availabilities.stream().anyMatch(availability -> startTime.isBefore(availability.getBreakEndTime()) && endTime.isAfter(availability.getBreakStartTime()));
+        boolean duringBreak = availabilities.stream().filter(availability ->
+                availability.getBreakStartTime() != null && availability.getBreakEndTime() != null)
+                .anyMatch(availability -> startTime.isBefore(availability.getBreakEndTime()) && endTime.isAfter(availability.getBreakStartTime()));
         if (duringBreak) {
             throw new IllegalArgumentException("Doctor is on break during the requested appointment time");
         }
