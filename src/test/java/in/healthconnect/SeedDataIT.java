@@ -53,7 +53,8 @@ class SeedDataIT {
         assertEquals(10000, count("appointments"));
         assertEquals(6, count("ai_knowledge"));
         assertEquals(7, count("ai_prompt_example"));
-        assertEquals(2, count("app_setting"));
+        // 3: nim.model, nim.base-url, and a PLACEHOLDER nim.api-key row to fill in.
+        assertEquals(3, count("app_setting"));
         assertEquals(20, count("widget"));
         assertEquals(5, count("board"));
         assertTrue(count("doctor_availabilities") > 1000, "expected 1000+ availability rows");
@@ -154,6 +155,80 @@ class SeedDataIT {
                 throw new AssertionError("example '" + question + "' does not run: " + e.getMessage(), e);
             }
         }
+    }
+
+    @Test
+    void theCurrentWeekTopUpAddsRealisticAppointmentsRelativeToToday() throws Exception {
+        try (Connection connection = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("db/data.sql"));
+        }
+        int before = count("appointments");
+        java.sql.Timestamp startedAt = jdbc.queryForObject("SELECT NOW(6)", java.sql.Timestamp.class);
+
+        try (Connection connection = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("db/appointments-next-7-days.sql"));
+        }
+        assertEquals(before + 500, count("appointments"), "expected exactly 500 new appointments");
+
+        // Everything it added sits in today .. today + 7 days.
+        Integer outsideWindow = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM appointments WHERE DATE(created_at) = CURDATE() "
+                        + "AND (appointment_date < CURDATE() OR appointment_date > CURDATE() + INTERVAL 7 DAY)",
+                Integer.class);
+        assertEquals(0, outsideWindow, "an appointment landed outside the 8-day window");
+
+        // Same guarantees the bulk seed makes: real working day, inside hours, never in the break.
+        Integer onDayOff = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM appointments a WHERE DATE(a.created_at) = CURDATE() AND NOT EXISTS ("
+                        + " SELECT 1 FROM doctor_availabilities av WHERE av.doctor_id = a.doctor_id"
+                        + " AND av.day_of_week = UPPER(DAYNAME(a.appointment_date)))", Integer.class);
+        assertEquals(0, onDayOff, "booked on a doctor's day off");
+
+        Integer outsideHours = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM appointments a "
+                        + "JOIN doctor_availabilities av ON av.doctor_id = a.doctor_id "
+                        + "  AND av.day_of_week = UPPER(DAYNAME(a.appointment_date)) "
+                        + "WHERE DATE(a.created_at) = CURDATE() "
+                        + "  AND (a.start_time < av.start_time OR a.end_time > av.end_time)", Integer.class);
+        assertEquals(0, outsideHours, "booked outside the doctor's hours");
+
+        Integer inBreak = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM appointments a "
+                        + "JOIN doctor_availabilities av ON av.doctor_id = a.doctor_id "
+                        + "  AND av.day_of_week = UPPER(DAYNAME(a.appointment_date)) "
+                        + "WHERE DATE(a.created_at) = CURDATE() AND av.break_start_time IS NOT NULL "
+                        + "  AND a.start_time < av.break_end_time AND a.end_time > av.break_start_time",
+                Integer.class);
+        assertEquals(0, inBreak, "booked over the doctor's break");
+
+        Integer doubleBooked = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM (SELECT doctor_id, appointment_date, start_time FROM appointments "
+                        + "WHERE DATE(created_at) = CURDATE() "
+                        + "GROUP BY doctor_id, appointment_date, start_time HAVING COUNT(*) > 1) x",
+                Integer.class);
+        assertEquals(0, doubleBooked, "a doctor was double-booked");
+
+        // created_at / updated_at must be stamped at RUN time, not baked into the file.
+        // Scoped to rows created since `startedAt`, because data.sql also writes
+        // future-dated appointments whose created_at is legitimately not "now".
+        Integer freshlyStamped = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM appointments WHERE created_at >= ?", Integer.class, startedAt);
+        assertEquals(500, freshlyStamped, "created_at was not stamped at execution time");
+
+        // Running it twice just adds another 500 - the file deletes nothing.
+        try (Connection connection = dataSource.getConnection()) {
+            ScriptUtils.executeSqlScript(connection, new FileSystemResource("db/appointments-next-7-days.sql"));
+        }
+        assertEquals(before + 1000, count("appointments"), "re-running should add another 500");
+
+        System.out.println(">>> current-week top-up, appointments per day:");
+        jdbc.queryForList("SELECT appointment_date AS d, COUNT(*) AS c FROM appointments "
+                        + "WHERE DATE(created_at) = CURDATE() GROUP BY appointment_date ORDER BY appointment_date")
+                .forEach(r -> System.out.printf(">>>   %s  %s%n", r.get("d"), r.get("c")));
+        System.out.println(">>> status split:");
+        jdbc.queryForList("SELECT status, COUNT(*) AS c FROM appointments "
+                        + "WHERE DATE(created_at) = CURDATE() GROUP BY status")
+                .forEach(r -> System.out.printf(">>>   %-10s %s%n", r.get("status"), r.get("c")));
     }
     private int count(String table) {
         Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM `" + table + "`", Integer.class);
