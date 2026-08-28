@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -13,8 +14,6 @@ import java.time.LocalTime;
 @Builder
 public class CreateAppointmentRequest {
 
-    @NotNull(message = "Patient ID is required")
-    @Positive(message = "Patient ID must be positive")
     private Integer patientId;
 
     @NotNull(message = "Doctor ID is required")
