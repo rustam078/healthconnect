@@ -1,8 +1,10 @@
 package in.healthconnect.widgetengine.service;
 
+import in.healthconnect.widgetengine.dto.request.DryRunWidgetRequest;
 import in.healthconnect.widgetengine.dto.request.ExecuteWidgetRequest;
 import in.healthconnect.widgetengine.dto.request.FilterValue;
 import in.healthconnect.widgetengine.dto.response.WidgetDataResponse;
+import org.springframework.core.NestedExceptionUtils;
 import in.healthconnect.widgetengine.engine.*;
 import in.healthconnect.widgetengine.entity.Widget;
 import in.healthconnect.widgetengine.entity.WidgetExecutionLog;
@@ -84,6 +86,48 @@ public class WidgetExecutionService {
     public PreparedQuery buildPreview(String idOrCode, ExecuteWidgetRequest request) {
         Widget widget = loadRunnableWidget(idOrCode);
         return buildQuery(widget, request);
+    }
+
+    // Run a query that is NOT a saved widget, so a developer can see what it returns
+    // before committing it to the library.
+    //
+    // Same pipeline as execute(), minus the widget. Three deliberate differences:
+    //   1. Nothing is loaded - there is no row yet, so there is no enabled check.
+    //   2. Nothing is audited - widget_execution_log is keyed by widget, and a developer
+    //      pressing "preview" in a form is not a dashboard fetch worth keeping.
+    //   3. Errors are NOT hidden. execute() swaps real failures for a generic message so a
+    //      dashboard viewer cannot probe the schema; here the caller wrote the query and
+    //      needs to be told the column is spelled wrong.
+    public WidgetDataResponse dryRun(DryRunWidgetRequest request) {
+        safetyGuard.assertSelectOnly(request.getSqlTemplate());
+
+        // No filter rules and no filter values: leftover {{blanks}} become "=" and leftover
+        // :names bind to null, which is exactly how an unfiltered saved widget runs.
+        PreparedQuery prepared = templateEngine.build(QueryBuildRequest.builder()
+                .template(request.getSqlTemplate())
+                .pageNo(1)
+                .pageSize(request.getPageSize())
+                .build());
+
+        try {
+            ExecutionResult result = queryExecutor.execute(prepared, true);
+            return WidgetDataResponse.of(result, 1, prepared.getPageSize());
+        } catch (Exception e) {
+            logger.debug("Dry run failed: {}", e.getMessage());
+            // IllegalArgumentException, not a bare RuntimeException: the global handler
+            // turns it into a 400 with this message, where the catch-all would return a
+            // 500 with nothing useful in it.
+            throw new IllegalArgumentException(databaseMessage(e));
+        }
+    }
+
+    // Dig out the database's own words. A Spring DataAccessException wraps the driver's
+    // message in a paragraph about the failing statement; the cause is the sentence a
+    // developer actually needs.
+    private String databaseMessage(Exception e) {
+        Throwable cause = NestedExceptionUtils.getMostSpecificCause(e);
+        String message = cause.getMessage();
+        return (message == null || message.isBlank()) ? "The query could not be run." : shorten(message);
     }
 
     // ---- helpers ----

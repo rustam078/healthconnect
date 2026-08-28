@@ -1,5 +1,6 @@
 package in.healthconnect.widgetengine.service;
 
+import in.healthconnect.widgetengine.dto.request.DryRunWidgetRequest;
 import in.healthconnect.widgetengine.dto.request.ExecuteWidgetRequest;
 import in.healthconnect.widgetengine.dto.request.FilterValue;
 import in.healthconnect.widgetengine.dto.response.WidgetDataResponse;
@@ -109,5 +110,45 @@ class WidgetExecutionServiceTest {
         ArgumentCaptor<WidgetExecutionLog> logCaptor = ArgumentCaptor.forClass(WidgetExecutionLog.class);
         verify(logRepository).save(logCaptor.capture());
         assertFalse(logCaptor.getValue().isSuccess());
+    }
+
+    @Test
+    void dryRunReturnsRowsWithoutSavingAnything() {
+        when(executor.execute(any(PreparedQuery.class), anyBoolean()))
+                .thenReturn(new ExecutionResult(List.of(Map.of("Doctor", "Dr A")), false));
+
+        WidgetDataResponse response = service.dryRun(
+                new DryRunWidgetRequest("SELECT name AS `Doctor` FROM doctors", 20));
+
+        assertEquals(1, response.getRowCount());
+        assertEquals("Dr A", response.getRows().get(0).get("Doctor"));
+        assertEquals(20, response.getPageSize());
+        assertEquals(1, response.getPageNo());
+
+        // The widget does not exist yet: nothing to load, nothing to audit.
+        verifyNoInteractions(widgetService);
+        verifyNoInteractions(logRepository);
+    }
+
+    @Test
+    void dryRunRejectsAQueryThatIsNotASelect() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.dryRun(new DryRunWidgetRequest("DELETE FROM doctors", 20)));
+
+        // rejected before it could reach the database
+        verifyNoInteractions(executor);
+    }
+
+    @Test
+    void dryRunShowsTheRealDatabaseError() {
+        when(executor.execute(any(PreparedQuery.class), anyBoolean()))
+                .thenThrow(new RuntimeException("Unknown column 'patinet_id' in 'field list'"));
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+                () -> service.dryRun(new DryRunWidgetRequest("SELECT patinet_id FROM doctors", 20)));
+
+        // the developer wrote this query - they get to see what is actually wrong with it
+        assertTrue(thrown.getMessage().contains("patinet_id"));
+        verifyNoInteractions(logRepository);
     }
 }
