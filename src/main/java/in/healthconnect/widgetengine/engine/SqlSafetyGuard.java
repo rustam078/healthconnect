@@ -60,6 +60,20 @@ public class SqlSafetyGuard {
         }
     }
 
+
+    // Only ONE trailing semicolon is removed. A second one is not a typo, it is an empty
+    // statement, and isSelectOnly is right to reject it.
+    public String normalize(String sql) {
+        if (sql == null) {
+            return null;
+        }
+        String trimmed = sql.trim();
+        if (trimmed.endsWith(";")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+        }
+        return trimmed;
+    }
+
     // Turn a filter operator word (like "in") into a known operator.
     // If the word is not in our allowed list, throw a clear error.
     public FilterOperator requireOperator(String key) {
