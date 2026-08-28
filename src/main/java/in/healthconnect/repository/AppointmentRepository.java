@@ -26,6 +26,21 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             """)
     boolean existsOverlappingAppointment(@Param("doctorId") Integer doctorId, @Param("appointmentDate") LocalDate appointmentDate, @Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime, @Param("cancelledStatus") AppointmentStatus cancelledStatus);
 
+    // Same overlap check, but blind to one appointment: when rescheduling, the row being
+    // moved is still sitting in its old slot and would otherwise clash with itself.
+    @Query("""
+            SELECT COUNT(a) > 0
+            FROM Appointment a
+            WHERE a.doctor.id = :doctorId
+              AND a.appointmentDate = :appointmentDate
+              AND a.deleted = false
+              AND a.id <> :excludedId
+              AND a.status <> :cancelledStatus
+              AND a.startTime < :endTime
+              AND a.endTime > :startTime
+            """)
+    boolean existsOverlappingAppointmentExcluding(@Param("doctorId") Integer doctorId, @Param("appointmentDate") LocalDate appointmentDate, @Param("startTime") LocalTime startTime, @Param("endTime") LocalTime endTime, @Param("cancelledStatus") AppointmentStatus cancelledStatus, @Param("excludedId") Integer excludedId);
+
     Page<Appointment> findByDoctorIdAndAppointmentDate(Integer doctorId, LocalDate appointmentDate, Pageable pageable);
 
      Page<Appointment> findByDoctorId(Integer doctorId,Pageable pageable);
