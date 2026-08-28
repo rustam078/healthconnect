@@ -1,9 +1,11 @@
 package in.healthconnect.widgetengine.controller;
 
+import in.healthconnect.widgetengine.dto.request.DryRunWidgetRequest;
 import in.healthconnect.widgetengine.dto.request.ExecuteWidgetRequest;
 import in.healthconnect.widgetengine.dto.response.WidgetDataResponse;
 import in.healthconnect.widgetengine.service.WidgetExecutionService;
 import in.healthconnect.wrapper.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,17 @@ public class WidgetExecutionController {
         ExecuteWidgetRequest safeRequest = request == null ? new ExecuteWidgetRequest() : request;
         WidgetDataResponse data = executionService.execute(idOrCode, safeRequest, true);
         return ResponseEntity.ok(ApiResponse.success(data));
+    }
+
+    // Run a query that has NOT been saved as a widget yet. Nothing is stored.
+    //
+    // This is the developer's "does it work?" button when writing a widget by hand:
+    // unlike /data it returns the database's real complaint, because the person calling
+    // it wrote the query and cannot fix what they cannot see.
+    @PostMapping("/api/v1/widgets/dry-run")
+    public ResponseEntity<ApiResponse<WidgetDataResponse>> dryRun(
+            @RequestBody @Valid DryRunWidgetRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(executionService.dryRun(request)));
     }
 
     // Run an INTEGRATION widget by its code - a stored query used as a simple API.

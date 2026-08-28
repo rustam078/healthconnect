@@ -81,6 +81,12 @@ const CITIES = ['Mumbai','Pune','Bengaluru','Hyderabad','Chennai','Delhi','Kolka
 const STREETS = ['MG Road','Station Road','Gandhi Nagar','Park Street','Ring Road','Nehru Marg','Civil Lines','Model Town','Lake View','Green Park']
 const DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY']
 
+// When the appointment was booked. Past appointments: the morning of the day itself.
+// Future ones: the seed's reference timestamp, because created_at must never be in the
+// future - a row cannot have been created after the moment you are reading it.
+const REF_DATE = '2026-08-01'
+const bookedAt = (iso) => (iso <= REF_DATE ? esc(`${iso} 08:00:00.000000`) : TS)
+
 // ---------- build ----------
 const out = []
 out.push('-- =====================================================================')
@@ -101,11 +107,11 @@ out.push('--')
 out.push('-- It DELETES the contents of every table it seeds, so loading it twice is safe')
 out.push('-- and always produces the same database.')
 out.push('--')
-out.push('-- NOT INCLUDED ON PURPOSE: the nim.api-key setting. An API key does not belong')
-out.push('-- in a file that gets committed. Add it after loading:')
-out.push('--   curl -X POST http://localhost:8080/api/v1/settings \\')
-out.push('--     -H "Content-Type: application/json" \\')
-out.push(`--     -d '{"name":"nim.api-key","value":"nvapi-...","secret":true}'`)
+out.push("-- THE API KEY IS A PLACEHOLDER. app_setting seeds nim.api-key with the literal")
+out.push("--   'paste api key here'")
+out.push('-- so the row exists ready to edit - no real credential is committed. Replace it')
+out.push('-- after loading, or the AI answers with a 502 from the provider:')
+out.push(`--   curl -X PUT http://localhost:8080/api/v1/settings/3 -H "Content-Type: application/json" -d '{"name":"nim.api-key","value":"nvapi-...","secret":true}'`)
 out.push('-- =====================================================================')
 out.push('')
 out.push('SET NAMES utf8mb4;')
@@ -274,7 +280,10 @@ while (apptId <= 10000) {
   apptRows.push([
     num(apptId), num(int(1, 5000)), num(d.id), esc(iso),
     esc(hhmmss(startMin)), esc(hhmmss(startMin + duration)), num(duration), esc(status),
-    esc(`${iso} 08:00:00.000000`), esc(`${iso} 08:00:00.000000`), '0',
+    // Booked on the day it happened for past appointments; for anything dated after the
+    // seed reference date, booked ON that reference date - a row cannot be created in
+    // the future.
+    bookedAt(iso), bookedAt(iso), '0',
   ])
   apptId++
 }
@@ -298,12 +307,17 @@ insertBatch(out, 'ai_prompt_example',
 
 // ---------- app_setting ----------
 out.push('-- ---------- app_setting ----------')
-out.push('-- nim.api-key is deliberately absent: see the note at the top of this file.')
+out.push('-- nim.api-key is seeded with a PLACEHOLDER value, not a real key. Replace it after')
+out.push('-- loading - see the note at the top of this file.')
 insertBatch(out, 'app_setting',
   ['id','name','setting_value','secret','description','enabled','created_at','updated_at','is_deleted'],
   [
     [num(1), esc('nim.model'), esc('nvidia/nemotron-3-super-120b-a12b'), '0', esc('NIM model used for text-to-SQL'), '1', TS, TS, '0'],
     [num(2), esc('nim.base-url'), esc('https://integrate.api.nvidia.com/v1'), '0', esc('NVIDIA NIM OpenAI-compatible base URL'), '1', TS, TS, '0'],
+    // A PLACEHOLDER, not a credential - the row exists so the key is easy to fill in.
+    // Replace it after loading:
+    //   PUT /api/v1/settings/3  {"name":"nim.api-key","value":"nvapi-...","secret":true}
+    [num(3), esc('nim.api-key'), esc('paste api key here'), '1', esc('NVIDIA NIM API key'), '1', TS, TS, '0'],
   ])
 
 // ---------- widgets ----------
