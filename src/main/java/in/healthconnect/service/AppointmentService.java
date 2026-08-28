@@ -43,7 +43,7 @@ public class AppointmentService {
         Doctor doctor = doctorRepository.findActiveDoctorForUpdate(request.getDoctorId()).orElseThrow(() ->
                 new ResourceNotFoundException("Doctor with id '" + request.getDoctorId() + "' does not exist"));
 
-        //end time cal
+        //end time calculation
         LocalTime endTime = request.getStartTime().plusMinutes(request.getDurationMinutes());
 
         // FIRST → date/time validation
