@@ -22,7 +22,7 @@
 --     -H "Content-Type: application/json" \
 --     -d '{"name":"nim.api-key","value":"nvapi-...","secret":true}'
 -- =====================================================================
-
+USE healthconnect;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -16765,8 +16765,8 @@ INSERT INTO `ai_prompt_example` (`id`, `question`, `generated_sql`, `enabled`, `
 -- nim.api-key is deliberately absent: see the note at the top of this file.
 INSERT INTO `app_setting` (`id`, `name`, `setting_value`, `secret`, `description`, `enabled`, `created_at`, `updated_at`, `is_deleted`) VALUES
   (1, 'nim.model', 'nvidia/nemotron-3-super-120b-a12b', 0, 'NIM model used for text-to-SQL', 1, '2026-08-01 09:00:00.000000', '2026-08-01 09:00:00.000000', 0),
-  (2, 'nim.base-url', 'https://integrate.api.nvidia.com/v1', 0, 'NVIDIA NIM OpenAI-compatible base URL', 1, '2026-08-01 09:00:00.000000', '2026-08-01 09:00:00.000000', 0);
-
+  (2, 'nim.base-url', 'https://integrate.api.nvidia.com/v1', 0, 'NVIDIA NIM OpenAI-compatible base URL', 1, '2026-08-01 09:00:00.000000', '2026-08-01 09:00:00.000000', 0),
+  (3, 'nim.api-key', 'paste api key here', 1, 'NVIDIA NIM API key', 1, '2026-08-01 09:00:00.000000', '2026-08-01 09:00:00.000000', 0);
 -- ---------- widget (20: 14 hand-built + 6 AI-generated) ----------
 INSERT INTO `widget` (`id`, `code`, `name`, `description`, `module`, `type`, `status`, `enabled`, `filters`, `sql_template`, `created_at`, `updated_at`, `is_deleted`) VALUES
   (1, 'specialty-list', 'Specialty List', 'Lists medical specialties; optional name filter.', 'WIDGET', 'TABLE', 'APPROVED', 1, '{"filters":[{"key":"name","operators":["eq","like"]}],"sortableColumns":["Specialty"]}', 'SELECT name AS `Specialty`, description AS `Details` FROM specialties WHERE is_deleted = false AND name {{name}} coalesce(:name, name)', '2026-08-01 09:00:00.000000', '2026-08-01 09:00:00.000000', 0),
