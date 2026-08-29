@@ -26,6 +26,11 @@ public class AiPromptExample extends BaseEntity {
     @Column(name = "generated_sql", columnDefinition = "TEXT", nullable = false)
     private String generatedSql;
 
+    // What to file this under in the sample-prompt list, e.g. "Doctors", "Appointments".
+    // Nullable: an example added without one still works, it just lands under General.
+    @Column(name = "category", length = 100)
+    private String category;
+
     // turn this example on/off without deleting it
     @Column(name = "enabled", nullable = false)
     @Builder.Default

@@ -24,6 +24,18 @@ public class WidgetQueryExecutor {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // How many rows the query matches in total, ignoring paging.
+    //
+    // The widget query is wrapped rather than rewritten: SELECT COUNT(*) FROM ( ... ) t.
+    // Counting what the page actually came from is the only way to be right about a query
+    // with its own GROUP BY, UNION or DISTINCT - trying to rewrite it into a count would be
+    // guesswork about someone else's SQL.
+    public long count(PreparedQuery prepared) {
+        String sql = "SELECT COUNT(*) FROM (" + prepared.getCountableSql() + ") widget_rows";
+        Long total = jdbcTemplate.queryForObject(sql, prepared.getParams(), Long.class);
+        return total == null ? 0L : total;
+    }
+
     // Run the query and return tidy rows + whether there is a next page.
     public ExecutionResult execute(PreparedQuery prepared, boolean hideTechnicalColumns) {
         List<Map<String, Object>> raw = jdbcTemplate.queryForList(prepared.getSql(), prepared.getParams());

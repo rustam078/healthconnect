@@ -26,6 +26,11 @@ public class SettingService {
     // ---------- CRUD (masked on the way out) ----------
 
     public AppSettingResponse create(AppSettingRequest request) {
+        // Checked here rather than with @NotBlank, because the annotation would also apply
+        // to update - where a missing value deliberately means "keep the stored one".
+        if (request.getValue() == null || request.getValue().isBlank()) {
+            throw new IllegalArgumentException("A value is required when creating a setting.");
+        }
         if (repository.existsByName(request.getName())) {
             throw new IllegalArgumentException(
                     "Setting '" + request.getName() + "' already exists.");
@@ -56,7 +61,11 @@ public class SettingService {
     public AppSettingResponse update(Integer id, AppSettingRequest request) {
         AppSetting setting = find(id);
         // The name is deliberately NOT updated - other code looks settings up by name.
-        setting.setValue(request.getValue());
+        // A null value means "leave it as it is", which is how the settings screen can turn
+        // a secret setting on or off without ever having seen the key it is turning off.
+        if (request.getValue() != null) {
+            setting.setValue(request.getValue());
+        }
         setting.setDescription(request.getDescription());
         if (request.getSecret() != null) {
             setting.setSecret(request.getSecret());

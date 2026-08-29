@@ -21,5 +21,9 @@ public class AiPromptExampleRequest {
     @NotBlank
     private String generatedSql;
 
+    // Groups the example in the sample-prompt list, e.g. "Doctors", "Appointments".
+    @Size(max = 100)
+    private String category;
+
     private Boolean enabled;
 }

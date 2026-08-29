@@ -34,4 +34,11 @@ public class QueryBuildRequest {
     // paging choice from the user (1 = first page)
     private Integer pageNo;
     private Integer pageSize;
+
+    // Values for the query's :name blanks, straight from the request body.
+    //
+    // A filter is a control on a screen; this is just a parameter. Keeping them separate is
+    // what lets a query take :fromDate without anyone declaring a filter for it.
+    @Builder.Default
+    private Map<String, Object> namedValues = Map.of();
 }

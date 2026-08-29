@@ -14,6 +14,7 @@ public class AiPromptExampleResponse {
     private Integer id;
     private String question;
     private String generatedSql;
+    private String category;
     private Boolean enabled;
 
     public static AiPromptExampleResponse from(AiPromptExample example) {
@@ -21,6 +22,7 @@ public class AiPromptExampleResponse {
                 .id(example.getId())
                 .question(example.getQuestion())
                 .generatedSql(example.getGeneratedSql())
+                .category(example.getCategory())
                 .enabled(example.getEnabled())
                 .build();
     }

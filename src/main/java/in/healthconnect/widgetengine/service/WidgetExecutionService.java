@@ -65,12 +65,19 @@ public class WidgetExecutionService {
         long start = System.currentTimeMillis();
         try {
             ExecutionResult result = queryExecutor.execute(prepared, hideTechnicalColumns);
+
+            // Only when asked. A table needs a total to draw page numbers; a COUNT card and
+            // a chart would be paying for a second pass over the same rows to learn nothing.
+            Long total = Boolean.TRUE.equals(request.getWithTotal())
+                    ? queryExecutor.count(prepared)
+                    : null;
+
             long durationMs = System.currentTimeMillis() - start;
 
             // save a "success" audit row
             saveLog(widget, request, result.rows().size(), durationMs, true, null);
 
-            return WidgetDataResponse.of(result, pageNo, prepared.getPageSize());
+            return WidgetDataResponse.of(result, pageNo, prepared.getPageSize(), total);
         } catch (Exception e) {
             long durationMs = System.currentTimeMillis() - start;
             // log the real problem on the server (full detail) ...
@@ -158,6 +165,7 @@ public class WidgetExecutionService {
                 .rules(config.rules())
                 .sortableColumns(config.sortableColumns())
                 .sortBy(request.getSortBy())
+                .namedValues(request.getParams())
                 .sortOrder(request.getSortOrder())
                 .pageNo(request.getPageNo())
                 .pageSize(request.getPageSize())

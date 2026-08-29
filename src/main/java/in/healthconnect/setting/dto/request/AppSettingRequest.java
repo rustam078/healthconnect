@@ -22,7 +22,6 @@ public class AppSettingRequest {
     @Size(max = 150)
     private String name;
 
-    @NotBlank
     private String value;
 
     // optional; defaults to false when creating
