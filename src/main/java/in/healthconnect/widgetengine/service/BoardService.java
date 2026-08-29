@@ -103,6 +103,7 @@ public class BoardService {
                     .code(w.getCode())
                     .name(w.getName())
                     .type(w.getType())
+                    .filters(w.getFilters())
                     .x(stored.x())
                     .y(stored.y())
                     .w(stored.w())
