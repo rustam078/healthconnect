@@ -14,6 +14,10 @@ public class AppointmentUtils {
                 .id(appointment.getId())
                 .patientId(appointment.getPatient().getId())
                 .doctorId(appointment.getDoctor().getId())
+                .doctorName(fullName(appointment.getDoctor().getFirstName(),
+                        appointment.getDoctor().getLastName()))
+                .patientName(fullName(appointment.getPatient().getFirstName(),
+                        appointment.getPatient().getLastName()))
                 .appointmentDate(appointment.getAppointmentDate())
                 .startTime(appointment.getStartTime())
                 .endTime(appointment.getEndTime())
@@ -23,6 +27,12 @@ public class AppointmentUtils {
                 .updatedAt(appointment.getUpdatedAt().atZone(ZoneId.of("Asia/Kolkata")).toLocalDateTime())
                 .build();
 
+    }
+
+    // "Pooja" + "Singh" -> "Pooja Singh". Either half may be missing in older rows, so the
+    // blank one is dropped rather than shown as a stray space.
+    private static String fullName(String firstName, String lastName) {
+        return ((firstName == null ? "" : firstName) + " " + (lastName == null ? "" : lastName)).trim();
     }
 
 }

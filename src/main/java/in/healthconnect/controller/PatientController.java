@@ -2,6 +2,8 @@ package in.healthconnect.controller;
 
 import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
+import in.healthconnect.dto.response.AppointmentResponse;
+import in.healthconnect.dto.response.PatientDetailResponse;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.enums.BloodGroup;
 import in.healthconnect.entity.enums.Gender;
@@ -84,5 +86,26 @@ public class PatientController {
     public ResponseEntity<ApiResponse<Void>> deletePatientById(@PathVariable Integer id) {
         patientService.deletePatientById(id);
         return ResponseEntity.ok(ApiResponse.success(null,"Patient deleted successfully"));
+    }
+
+    // ---------- patient record page ----------
+
+    // One patient plus their summary numbers. This is also the only way to fetch a single
+    // patient: the search endpoint above returns a page, not a record.
+    @GetMapping("/{id}/details")
+    public ResponseEntity<ApiResponse<PatientDetailResponse>> getPatientDetails(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(
+                patientService.getPatientDetails(id), "Patient details fetched successfully"));
+    }
+
+    // That patient's visit history, newest first. Paged because a long-standing patient
+    // has more visits than anyone wants to scroll in one response.
+    @GetMapping("/{id}/appointments")
+    public ResponseEntity<ApiResponse<Page<AppointmentResponse>>> getPatientAppointments(
+            @PathVariable Integer id,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(
+                patientService.getPatientAppointments(id, pageable),
+                "Patient appointments fetched successfully"));
     }
 }
