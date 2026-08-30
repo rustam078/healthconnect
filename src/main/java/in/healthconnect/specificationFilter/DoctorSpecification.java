@@ -38,17 +38,6 @@ public final class DoctorSpecification {
                 String searchValue =
                         "%" + search.trim().toLowerCase() + "%";
 
-                Predicate firstNamePredicate =
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("firstName")),
-                                searchValue
-                        );
-
-                Predicate lastNamePredicate =
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("lastName")),
-                                searchValue
-                        );
 
                 Predicate phonePredicate =
                         criteriaBuilder.like(
@@ -69,10 +58,20 @@ public final class DoctorSpecification {
                         );
 
 
+                Predicate fullNamePredicate =
+                        criteriaBuilder.like(
+                                criteriaBuilder.lower(
+                                        criteriaBuilder.concat(
+                                                criteriaBuilder.concat(root.get("firstName"), " "),
+                                                criteriaBuilder.coalesce(root.get("lastName"), "")
+                                        )
+                                ),
+                                searchValue
+                        );
+
                 predicates.add(
                         criteriaBuilder.or(
-                                firstNamePredicate,
-                                lastNamePredicate,
+                                fullNamePredicate,
                                 phonePredicate,
                                 emailPredicate,
                                 doctorCodePredicate

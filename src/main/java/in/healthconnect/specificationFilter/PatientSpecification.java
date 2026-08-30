@@ -37,18 +37,6 @@ public final class PatientSpecification {
                 String searchValue =
                         "%" + request.search().trim().toLowerCase() + "%";
 
-                Predicate firstNamePredicate =
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("firstName")),
-                                searchValue
-                        );
-
-                Predicate lastNamePredicate =
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("lastName")),
-                                searchValue
-                        );
-
                 Predicate phonePredicate =
                         criteriaBuilder.like(
                                 criteriaBuilder.lower(root.get("phone")),
@@ -67,10 +55,37 @@ public final class PatientSpecification {
                                 searchValue
                         );
 
+                // The whole name, and it replaces separate firstName / lastName matching.
+                //
+                // Every screen shows a patient as "Alka Patel", so that is what people
+                // type - and first OR last name alone never matches it, because neither
+                // column holds the space.
+                //
+                // The two are not needed alongside it: "%term%" is wildcarded on both
+                // sides, so anything found inside firstName or lastName is also found
+                // inside the two joined. Checked against the data - "patel" 172, "alka"
+                // 109, "sharma" 166, identical either way, and "alka patel" goes from 0
+                // to 4. It also catches a term spanning the space, like "ka pat".
+                //
+                // COALESCE is required here: patient.last_name is NULLABLE, SQL CONCAT with
+                // a NULL returns NULL, and NULL LIKE anything is never true - so a patient
+                // with no last name would silently vanish from every search, findable by
+                // neither name nor code. The Criteria API has no CONCAT_WS, so an empty
+                // string stands in for the null.
+                Predicate fullNamePredicate =
+                        criteriaBuilder.like(
+                                criteriaBuilder.lower(
+                                        criteriaBuilder.concat(
+                                                criteriaBuilder.concat(root.get("firstName"), " "),
+                                                criteriaBuilder.coalesce(root.get("lastName"), "")
+                                        )
+                                ),
+                                searchValue
+                        );
+
                 predicates.add(
                         criteriaBuilder.or(
-                                firstNamePredicate,
-                                lastNamePredicate,
+                                fullNamePredicate,
                                 phonePredicate,
                                 emailPredicate,
                                 patientCodePredicate

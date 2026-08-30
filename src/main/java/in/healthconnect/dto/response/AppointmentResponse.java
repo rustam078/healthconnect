@@ -20,6 +20,10 @@ public class AppointmentResponse {
 
     private Integer doctorId;
 
+    private String doctorName;
+
+    private String patientName;
+
     private LocalDate appointmentDate;
 
     private LocalTime startTime;

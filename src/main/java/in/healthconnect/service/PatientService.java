@@ -3,17 +3,24 @@ package in.healthconnect.service;
 import in.healthconnect.specificationFilter.PatientSpecification;
 import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
+import in.healthconnect.dto.response.AppointmentResponse;
+import in.healthconnect.dto.response.PatientDetailResponse;
 import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.entity.Patient;
+import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.exception.ResourceNotFoundException;
+import in.healthconnect.utils.AppointmentUtils;
 import in.healthconnect.utils.PatientUtils;
+import in.healthconnect.repository.AppointmentRepository;
 import in.healthconnect.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +31,10 @@ public class PatientService {
     private PatientRepository patientRepository;
     @Autowired
     private PatientUtils patientUtils;
+    // Read-only here: the patient record page counts and lists a patient's appointments,
+    // it never creates or changes one. Booking stays in AppointmentService.
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     public PatientResponse createPatient(CreatePatientRequest request) {
         //step1  Check duplicate email
@@ -119,5 +130,34 @@ public class PatientService {
 
 //        patient.setDeleted(true);
         patientRepository.delete(patient);
+    }
+
+    // ---------- patient record page ----------
+
+    @Transactional(readOnly = true)
+    public PatientDetailResponse getPatientDetails(Integer id) {
+        Patient patient = patientRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Patient with id '" + id + "' does not exist"));
+
+        LocalDate today = LocalDate.now();
+        PatientDetailResponse.Stats stats = new PatientDetailResponse.Stats(
+                // Every appointment on file, so this matches the history table below it.
+                appointmentRepository.countByPatientId(id),
+                // "Upcoming" means still going to happen: today or later AND not already
+                appointmentRepository.countUpcoming(id, today, AppointmentStatus.SCHEDULED),
+                appointmentRepository.countDistinctDoctorsSeen(id, AppointmentStatus.COMPLETED, today),
+                appointmentRepository.findLastVisitDate(id, AppointmentStatus.COMPLETED, today));
+
+        return new PatientDetailResponse(PatientUtils.mapToPatientResponse(patient), stats);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AppointmentResponse> getPatientAppointments(Integer id, Pageable pageable) {
+        if (!patientRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Patient with id '" + id + "' does not exist");
+        }
+        return appointmentRepository
+                .findByPatientIdOrderByAppointmentDateDescStartTimeDesc(id, pageable)
+                .map(AppointmentUtils::mapToAppointmentResponse);
     }
 }
