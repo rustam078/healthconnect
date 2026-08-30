@@ -1,6 +1,7 @@
 package in.healthconnect.widgetengine.dto.response;
 
 import in.healthconnect.widgetengine.entity.enums.WidgetType;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.*;
 
 import java.util.List;
@@ -28,6 +29,13 @@ public class BoardResponse {
         private String code;       // used by the UI to call /widgets/{code}/data
         private String name;       // widget title to show on the card
         private WidgetType type;   // how to draw it (COUNT/TABLE/BAR/LINE/PIE)
+
+        // The widget's filter settings, passed straight through as JSON so a card can draw
+        // its own filter controls. Sent here rather than fetched per card: a board of ten
+        // widgets would otherwise cost ten extra requests to learn something the board
+        // already had in hand.
+        
+        private String filters;
         private Integer x;         // starting column, 0-2
         private Integer y;         // row, in grid row units
         private Integer w;         // column span, 1-3

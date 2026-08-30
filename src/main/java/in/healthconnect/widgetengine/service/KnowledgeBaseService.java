@@ -82,6 +82,7 @@ public class KnowledgeBaseService {
         AiPromptExample example = new AiPromptExample();
         example.setQuestion(request.getQuestion());
         example.setGeneratedSql(request.getGeneratedSql());
+        example.setCategory(request.getCategory());
         example.setEnabled(request.getEnabled() == null ? Boolean.TRUE : request.getEnabled());
         return AiPromptExampleResponse.from(exampleRepository.save(example));
     }
@@ -102,6 +103,7 @@ public class KnowledgeBaseService {
         AiPromptExample example = findExample(id);
         example.setQuestion(request.getQuestion());
         example.setGeneratedSql(request.getGeneratedSql());
+        example.setCategory(request.getCategory());
         if (request.getEnabled() != null) {
             example.setEnabled(request.getEnabled());
         }

@@ -32,6 +32,19 @@ public class FilterConfigParser {
             return new FilterConfig(List.of(), List.of());
         }
 
+        // An ARRAY is the current shape: a list of the CONTROLS a screen should draw, e.g.
+        //   [ { "id": "doctorId", "type": "single-select", "source": "db" } ]
+        //
+        // The engine has nothing to enforce there. Values arrive by name and bind to the
+        // query's own blanks, so there are no operator rules to check - which is exactly
+        // what makes a filter unnecessary for a parameter nobody has to click.
+        //
+        // The object shape below, { "filters": [...] }, is the older one that also carried
+        // per-filter operator rules, and is still read for any widget written that way.
+        if (filtersJson.trim().startsWith("[")) {
+            return new FilterConfig(List.of(), List.of());
+        }
+
         // Let Jackson read the JSON into simple holder objects (see bottom of file).
         RawConfig raw;
         try {

@@ -10,7 +10,10 @@ import lombok.*;
 import java.time.Instant;
 
 // The full details of one widget that we send back to the client.
-// Notice: the sqlTemplate is NOT here - we never show the query to the client.
+// The sqlTemplate IS here. It was left out while dashboards were the only caller, but the
+// developer tab writes and edits queries by hand, and it cannot pre-fill a form with a
+// query it is never told. Same audience that already types the SQL - nothing new is
+// revealed. When auth lands this endpoint takes the same role check as that tab.
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +27,9 @@ public class WidgetResponse {
     private String description;
     private WidgetModule module;
     private WidgetType type;
+
+    // the query itself, with its :name and {{name}} blanks intact
+    private String sqlTemplate;
 
     // send the stored filter settings back as real JSON (not as a quoted string)
     @JsonRawValue
@@ -43,6 +49,7 @@ public class WidgetResponse {
                 .description(widget.getDescription())
                 .module(widget.getModule())
                 .type(widget.getType())
+                .sqlTemplate(widget.getSqlTemplate())
                 .filters(widget.getFilters())
                 .enabled(widget.getEnabled())
                 .status(widget.getStatus())

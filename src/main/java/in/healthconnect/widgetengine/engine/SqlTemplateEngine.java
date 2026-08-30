@@ -84,6 +84,20 @@ public class SqlTemplateEngine {
         // ---- 3. Make leftover blanks harmless (filters the user did not send) ----
         // Any leftover {{...}} becomes "=" ...
         sql = sql.replaceAll("\\{\\{\\s*\\w+\\s*\\}\\}", "=");
+        // Values sent by name in the request body, for blanks that no filter declared.
+        // A query can then take :fromDate or :templateName without a filter existing for
+        // it - a filter is only needed when a screen has to draw a control.
+        Map<String, Object> named = request.getNamedValues();
+        if (named != null) {
+            for (Map.Entry<String, Object> entry : named.entrySet()) {
+                // A declared filter wins: it went through the operator checks above, and
+                // its value was shaped for the operator it is being used with.
+                if (!params.hasValue(entry.getKey())) {
+                    params.addValue(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+
         // ... and any leftover :name that we did not bind yet becomes null.
         // (Templates use coalesce(:name, column) so a null means "do not filter".)
         for (String variable : extractNamedVariables(sql)) {
@@ -125,6 +139,9 @@ public class SqlTemplateEngine {
         }
         int offset = (pageNo - 1) * pageSize;
 
+        // Remembered before paging is appended - this is what a COUNT wraps.
+        String unpaged = sql;
+
         if (!ownLimit) {
             sql += " limit :__pageSize offset :__offset";
             // Ask for ONE extra row. If we get it back, we know there is a next page.
@@ -135,7 +152,7 @@ public class SqlTemplateEngine {
         // pageSize, so the page cap keeps protecting us; a "top 5" simply returns its 5.
 
         // Pass the real pageSize along so the executor knows where to cut the extra row.
-        return new PreparedQuery(sql, params, pageSize);
+        return new PreparedQuery(sql, params, pageSize, unpaged);
     }
 
 

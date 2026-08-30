@@ -25,9 +25,19 @@ public class WidgetDataResponse {
     private int pageSize;
     private boolean hasNext;
 
+    // How many rows match in total, ignoring paging. Null unless the caller asked for it:
+    // counting means a second query over the same rows, which a COUNT card or a chart has
+    // no use for.
+    private Long totalElements;
+
     // Build this response from the engine's result plus the paging info we used.
     public static WidgetDataResponse of(ExecutionResult result, int pageNo, int pageSize) {
+        return of(result, pageNo, pageSize, null);
+    }
+
+    public static WidgetDataResponse of(ExecutionResult result, int pageNo, int pageSize, Long totalElements) {
         return WidgetDataResponse.builder()
+                .totalElements(totalElements)
                 .rows(result.rows())
                 .rowCount(result.rows().size())
                 .pageNo(pageNo)

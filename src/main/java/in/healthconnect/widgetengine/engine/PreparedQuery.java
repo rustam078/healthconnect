@@ -17,4 +17,9 @@ public class PreparedQuery {
     private final String sql;
     private final MapSqlParameterSource params;
     private final int pageSize;
+
+    // The same query WITHOUT its limit/offset, so a total can be counted from exactly what
+    // the page came from. Re-deriving it by stripping the tail off `sql` would be guesswork;
+    // the engine already knows where the paging starts.
+    private final String countableSql;
 }
