@@ -1,0 +1,221 @@
+INSERT INTO `app_setting`
+(`name`, `setting_value`, `secret`, `description`, `enabled`, `created_at`, `updated_at`, `is_deleted`)
+VALUES (
+           'consultation.pdf-template',
+           '<!DOCTYPE html>
+         <html lang="en">
+         <head>
+           <meta charset="UTF-8"/>
+           <title>Consultation — {{patientName}}</title>
+           <style>
+             @page { size: A4; margin: 20mm 14mm; }
+
+             * { box-sizing: border-box; }
+
+             body {
+               font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+               font-size: 11pt;
+               color: #1f2933;
+               line-height: 1.45;
+               margin: 0;
+               padding: 0 10mm;
+             }
+
+             .doc-header {
+               border-bottom: 2px solid #0b7285;
+               padding-bottom: 10px;
+               margin-bottom: 18px;
+             }
+             .doc-header .clinic {
+               font-size: 18pt;
+               font-weight: 700;
+               color: #0b7285;
+             }
+             .doc-header .doc-title {
+               font-size: 10pt;
+               letter-spacing: 1px;
+               text-transform: uppercase;
+               color: #52606d;
+             }
+             .doc-header .doc-date {
+               float: right;
+               font-size: 9.5pt;
+               color: #52606d;
+             }
+
+             .meta {
+               width: 100%;
+               border-collapse: collapse;
+               margin-bottom: 18px;
+             }
+             .meta td {
+               vertical-align: top;
+               padding: 3px 0;
+               font-size: 10pt;
+             }
+             .meta .label {
+               width: 90px;
+               color: #7b8794;
+               font-weight: 600;
+             }
+             .meta .col-gap { width: 40px; }
+
+             .section-title {
+               font-size: 11pt;
+               font-weight: 700;
+               color: #0b7285;
+               border-bottom: 1px solid #d9e2ec;
+               padding-bottom: 4px;
+               margin: 16px 0 8px;
+             }
+
+             .field {
+               margin: 0 0 8px;
+             }
+             .field-label {
+               font-weight: 600;
+               color: #52606d;
+               font-size: 9.5pt;
+               display: block;
+               margin-bottom: 1px;
+             }
+             .field-value {
+               display: block;
+             }
+
+             table.rx {
+               width: 100%;
+               border-collapse: collapse;
+               margin-top: 6px;
+               font-size: 10pt;
+             }
+             table.rx thead th {
+               background: #0b7285;
+               color: #ffffff;
+               text-align: left;
+               font-weight: 600;
+               padding: 7px 9px;
+               border: 1px solid #0b7285;
+             }
+             table.rx tbody td {
+               padding: 6px 9px;
+               border: 1px solid #d9e2ec;
+               vertical-align: top;
+             }
+             table.rx tbody tr:nth-child(even) td {
+               background: #f5f8fa;
+             }
+             table.rx .empty {
+               text-align: center;
+               color: #7b8794;
+               font-style: italic;
+             }
+
+             .col-medicine     { width: 26%; }
+             .col-dosage       { width: 14%; }
+             .col-frequency    { width: 16%; }
+             .col-duration     { width: 16%; }
+             .col-instructions { width: 28%; }
+
+             .footer {
+               margin-top: 40px;
+               padding-top: 8px;
+               border-top: 1px solid #d9e2ec;
+               font-size: 9pt;
+               color: #7b8794;
+             }
+             .sign {
+               margin-top: 48px;
+               text-align: right;
+               font-size: 10pt;
+             }
+             .sign .line {
+               display: inline-block;
+               border-top: 1px solid #52606d;
+               padding-top: 4px;
+               min-width: 200px;
+               text-align: center;
+             }
+           </style>
+         </head>
+         <body>
+
+           <div class="doc-header">
+             <span class="doc-date">{{documentDate}}</span>
+             <div class="clinic">{{clinicName}}</div>
+             <div class="doc-title">Consultation Summary</div>
+           </div>
+
+           <table class="meta">
+             <tr>
+               <td class="label">Patient</td>
+               <td>{{patientName}}</td>
+               <td class="col-gap"></td>
+               <td class="label">Doctor</td>
+               <td>{{doctorName}}</td>
+             </tr>
+             <tr>
+               <td class="label">Patient ID</td>
+               <td>{{patientCode}}</td>
+               <td class="col-gap"></td>
+               <td class="label">Date</td>
+               <td>{{appointmentDate}}</td>
+             </tr>
+             <tr>
+               <td class="label">Age / Sex</td>
+               <td>{{patientAgeGender}}</td>
+               <td class="col-gap"></td>
+               <td class="label">Time</td>
+               <td>{{appointmentTime}}</td>
+             </tr>
+           </table>
+
+           <div class="clinical">
+             <div class="section-title">Clinical notes</div>
+             <div class="field">
+               <span class="field-label">Chief complaint</span>
+               <span class="field-value">{{chiefComplaint}}</span>
+             </div>
+             <div class="field">
+               <span class="field-label">Diagnosis</span>
+               <span class="field-value">{{diagnosis}}</span>
+             </div>
+             <div class="field">
+               <span class="field-label">Notes / advice</span>
+               <span class="field-value">{{notes}}</span>
+             </div>
+           </div>
+
+           <div class="section-title">Prescription</div>
+           <table class="rx">
+             <thead>
+               <tr>
+                 <th class="col-medicine">Medicine</th>
+                 <th class="col-dosage">Dosage</th>
+                 <th class="col-frequency">Frequency</th>
+                 <th class="col-duration">Duration</th>
+                 <th class="col-instructions">Instructions</th>
+               </tr>
+             </thead>
+             <tbody>
+               {{prescriptionRows}}
+             </tbody>
+           </table>
+
+           <div class="sign">
+             <span class="line">{{doctorName}}</span>
+           </div>
+
+           <div class="footer">
+             This is a computer-generated consultation summary from {{clinicName}}.
+           </div>
+
+         </body>
+         </html>',
+           0,
+           'HTML template for the consultation/prescription PDF. Scalar {{...}} placeholders plus {{prescriptionRows}} for injected medicine rows.',
+           1,
+           NOW(6),
+           NOW(6),
+           0
+       );
