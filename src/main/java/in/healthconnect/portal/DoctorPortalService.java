@@ -74,6 +74,9 @@ public class DoctorPortalService {
     @Transactional
     public AppointmentResponse scheduleFollowUp(Integer appointmentId, FollowUpRequest request) {
         Appointment appointment = assertMyAppointment(appointmentId);
+        if (appointment.getFollowUpAppointmentId() != null) {
+            throw new IllegalArgumentException("A follow-up is already scheduled for this visit.");
+        }
         if(appointment.getFollowUpValidUntil().isBefore(request.date())){
             throw new IllegalArgumentException("Follow-up date must be within 30 days of the original appointment date.");
         }
@@ -88,7 +91,10 @@ public class DoctorPortalService {
                 .durationMinutes(30)
 
                 .build();
-        return appointmentService.createAppointment(create);
+        AppointmentResponse created = appointmentService.createAppointment(create);
+        appointment.setFollowUpAppointmentId(created.getId());
+        appointmentRepository.save(appointment);
+        return created;
     }
 
     // Specialties the doctor can refer to.
@@ -101,6 +107,9 @@ public class DoctorPortalService {
     @Transactional
     public void refer(Integer appointmentId, ReferRequest request) {
         assertMyAppointment(appointmentId);
+        if (referralRepository.existsByAppointmentId(appointmentId)) {
+            throw new IllegalArgumentException("This visit is already referred.");
+        }
         referralRepository.save(Referral.builder()
                 .appointmentId(appointmentId)
                 .specialtyId(request.specialtyId())
@@ -209,7 +218,9 @@ public class DoctorPortalService {
                 appointment.getAppointmentDate(), appointment.getStartTime(), appointment.getEndTime(),
                 patient.getId(), name, patient.getPatientCode(), age, patient.getGender(), patient.getPhone(),
                 appointmentRepository.findLastVisitDate(patient.getId(), AppointmentStatus.COMPLETED, LocalDate.now()),
-                appointmentRepository.findNextFollowUpDate(patient.getId(), AppointmentStatus.SCHEDULED, LocalDate.now()));
+                appointmentRepository.findNextFollowUpDate(patient.getId(), AppointmentStatus.SCHEDULED, LocalDate.now()),
+                appointment.getFollowUpAppointmentId() != null,
+                referralRepository.existsByAppointmentId(appointmentId));
     }
 
     // Mark one of the doctor's own appointments as completed.

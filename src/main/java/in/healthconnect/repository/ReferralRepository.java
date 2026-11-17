@@ -10,4 +10,6 @@ import java.util.List;
 public interface ReferralRepository extends JpaRepository<Referral, Integer> {
 
     List<Referral> findByAppointmentIdOrderByIdAsc(Integer appointmentId);
+
+    boolean existsByAppointmentId(Integer appointmentId);
 }

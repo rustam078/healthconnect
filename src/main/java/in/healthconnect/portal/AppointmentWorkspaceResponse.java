@@ -11,5 +11,6 @@ public record AppointmentWorkspaceResponse(Integer appointmentId, AppointmentSta
                                            LocalDate appointmentDate, LocalTime startTime, LocalTime endTime,
                                            Integer patientId, String patientName, String patientCode,
                                            Integer age, Gender gender, String phone,
-                                           LocalDate lastVisitDate, LocalDate nextFollowUpDate) {
+                                           LocalDate lastVisitDate, LocalDate nextFollowUpDate,
+                                           boolean followUpScheduled, boolean referred) {
 }

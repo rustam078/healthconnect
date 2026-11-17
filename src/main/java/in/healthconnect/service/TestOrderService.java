@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 // The lab-test catalogue and the tests ordered against appointments.
 @Service
@@ -28,9 +29,15 @@ public class TestOrderService {
     }
 
     // Order each chosen catalogue test for the appointment (name/category snapshotted).
+    // Tests already ordered for this appointment are skipped, so there are never duplicates.
     @Transactional
     public List<OrderedTestResponse> order(Integer appointmentId, List<Integer> labTestIds) {
+        Set<String> already = orderedTestRepository.findByAppointmentIdOrderByIdAsc(appointmentId).stream()
+                .map(OrderedTest::getTestName).collect(java.util.stream.Collectors.toSet());
         for (LabTest test : labTestRepository.findAllById(labTestIds == null ? List.of() : labTestIds)) {
+            if (already.contains(test.getName())) {
+                continue;
+            }
             orderedTestRepository.save(OrderedTest.builder()
                     .appointmentId(appointmentId)
                     .testName(test.getName())

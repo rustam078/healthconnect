@@ -48,4 +48,8 @@ public class Appointment extends BaseEntity {
     @Column(name = "follow_up", nullable = false)
     private LocalDate followUpValidUntil;
 
+    // The follow-up appointment created from this visit (so only one can be scheduled).
+    @Column(name = "follow_up_appointment_id")
+    private Integer followUpAppointmentId;
+
 }
