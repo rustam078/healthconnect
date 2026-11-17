@@ -220,7 +220,7 @@ public class DoctorPortalService {
                 appointmentRepository.findLastVisitDate(patient.getId(), AppointmentStatus.COMPLETED, LocalDate.now()),
                 appointmentRepository.findNextFollowUpDate(patient.getId(), AppointmentStatus.SCHEDULED, LocalDate.now()),
                 appointment.getFollowUpAppointmentId() != null,
-                referralRepository.existsByAppointmentId(appointmentId));
+                referralRepository.existsByAppointmentId(appointmentId), appointment.getReason());
     }
 
     // Mark one of the doctor's own appointments as completed.

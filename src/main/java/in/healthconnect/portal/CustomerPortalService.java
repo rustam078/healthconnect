@@ -70,7 +70,8 @@ public class CustomerPortalService {
             if (!slots.isEmpty()) {
                 result.add(new AvailableDoctorResponse(doctor.getId(),
                         doctor.getFirstName() + " " + doctor.getLastName(),
-                        doctor.getQualification(), doctor.getConsultationFee(), slots));
+                        doctor.getQualification(), doctor.getConsultationFee(), slots,
+                        occupiedSlotsFor(doctor.getId(), day, slots)));
             }
         }
         return result;
@@ -84,8 +85,20 @@ public class CustomerPortalService {
                 .startTime(request.startTime())
                 .durationMinutes(SLOT_MINUTES)
                 .appointmentType("NEW")
+                .reason(request.reason())
                 .build();
         return appointmentService.createAppointment(create);
+    }
+
+    // The grid slots on that day that are NOT free (booked or past), for the red "occupied" cells.
+    private List<LocalTime> occupiedSlotsFor(Integer doctorId, DayOfWeek day, List<LocalTime> free) {
+        java.util.Set<LocalTime> freeSet = new java.util.HashSet<>(free);
+        List<LocalTime> all = new ArrayList<>();
+        for (DoctorAvailability window : availabilityRepository.findByDoctorIdAndDayOfWeek(doctorId, day)) {
+            all.addAll(slotService.freeSlots(new SlotWindow(window.getStartTime(), window.getEndTime(),
+                    window.getBreakStartTime(), window.getBreakEndTime(), SLOT_MINUTES), List.of(), null));
+        }
+        return all.stream().distinct().filter(t -> !freeSet.contains(t)).sorted().toList();
     }
 
     @Transactional(readOnly = true)

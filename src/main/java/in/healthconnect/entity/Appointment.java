@@ -52,4 +52,8 @@ public class Appointment extends BaseEntity {
     @Column(name = "follow_up_appointment_id")
     private Integer followUpAppointmentId;
 
+    // Why the patient booked (shown to the doctor as the chief complaint).
+    @Column(name = "reason", length = 500)
+    private String reason;
+
 }

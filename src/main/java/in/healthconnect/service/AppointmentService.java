@@ -68,6 +68,7 @@ public class AppointmentService {
                 .durationMinutes(request.getDurationMinutes())
                 .status(AppointmentStatus.SCHEDULED)
                 .appointmentType(request.getAppointmentType())
+                .reason(request.getReason())
                 .followUpValidUntil(request.getFollowUpValidUntil() != null ? request.getFollowUpValidUntil() : request.getAppointmentDate().plusDays(30))
                 .build();
 

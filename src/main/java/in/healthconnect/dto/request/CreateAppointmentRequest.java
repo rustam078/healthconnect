@@ -34,5 +34,7 @@ public class CreateAppointmentRequest {
     @NotNull(message = "Appointment type is required")
     private String appointmentType;
 
+    private String reason;
+
     private LocalDate followUpValidUntil;
 }
