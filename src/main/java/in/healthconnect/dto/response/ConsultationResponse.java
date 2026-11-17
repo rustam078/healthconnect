@@ -22,6 +22,9 @@ public class ConsultationResponse {
     // consultation, so serialising this never loops.
     private List<PrescriptionMedicineResponse> medicines;
 
+    // Tests/investigations advised at this visit.
+    private List<RecommendedTestResponse> tests;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

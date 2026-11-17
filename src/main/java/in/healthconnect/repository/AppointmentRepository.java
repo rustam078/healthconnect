@@ -12,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer>, JpaSpecificationExecutor<Appointment> {
 
@@ -51,6 +54,26 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @EntityGraph(attributePaths = {"doctor", "patient"})
     Page<Appointment> findByPatientIdOrderByAppointmentDateDescStartTimeDesc(Integer patientId, Pageable pageable);
+
+    // Booked (non-cancelled) appointments for a doctor on a date, to work out free slots.
+    List<Appointment> findByDoctorIdAndAppointmentDateAndStatusNot(Integer doctorId, LocalDate appointmentDate, AppointmentStatus status);
+
+    // A doctor's visits with one patient (newest first), for patient history.
+    @EntityGraph(attributePaths = {"doctor", "patient"})
+    List<Appointment> findByDoctorIdAndPatientIdOrderByAppointmentDateDescStartTimeDesc(Integer doctorId, Integer patientId);
+
+    // Does this doctor have any appointment with this patient? (ownership for history/reports)
+    boolean existsByDoctorIdAndPatientId(Integer doctorId, Integer patientId);
+
+    // Distinct patients seen by any doctor sharing one of these specialties (a "department").
+    @Query("""
+            SELECT DISTINCT a.patient.id
+            FROM Appointment a, DoctorSpecialtyMap m
+            WHERE a.doctor.id = m.doctor.id
+              AND m.specialty.id IN :specialtyIds
+              AND a.deleted = false
+            """)
+    List<Integer> findDistinctPatientIdsByDoctorSpecialties(@Param("specialtyIds") Collection<Integer> specialtyIds);
 
 
     long countByPatientId(Integer patientId);

@@ -12,6 +12,7 @@ public enum AppModule {
     APPOINTMENTS("appointments"),
     SETTINGS("settings"),
     WIDGETS("widgets"),
+    REPORTS("reports"),
     ROLES("roles"),
     USERS("users"),
     CUSTOMER_PORTAL("customer-portal"),

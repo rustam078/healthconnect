@@ -80,6 +80,34 @@ public class SettingService {
         repository.delete(find(id)); // soft delete via @SQLDelete
     }
 
+    // Seed a setting on first run; an already-present one is left exactly as it is.
+    public void putIfAbsent(String name, String value, String description) {
+        if (repository.existsByName(name)) {
+            return;
+        }
+        AppSetting setting = new AppSetting();
+        setting.setName(name);
+        setting.setValue(value);
+        setting.setSecret(false);
+        setting.setDescription(description);
+        setting.setEnabled(true);
+        repository.save(setting);
+    }
+
+    // Seed a setting, or refresh an existing value that predates a token it must now contain
+    // (used to upgrade an old stored template to a newer one that uses extra placeholders).
+    public void seedOrUpgrade(String name, String requiredToken, String value, String description) {
+        AppSetting existing = repository.findByName(name).orElse(null);
+        if (existing == null) {
+            putIfAbsent(name, value, description);
+            return;
+        }
+        if (existing.getValue() == null || !existing.getValue().contains(requiredToken)) {
+            existing.setValue(value);
+            repository.save(existing);
+        }
+    }
+
     // ---------- server-side readers (REAL value, never masked, never serialized) ----------
 
     // The value, or a clear error naming the setting that needs configuring.

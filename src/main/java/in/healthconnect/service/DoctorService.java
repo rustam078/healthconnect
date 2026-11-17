@@ -3,11 +3,14 @@ package in.healthconnect.service;
 import in.healthconnect.specificationFilter.DoctorSpecification;
 import in.healthconnect.dto.request.CreateDoctorRequest;
 import in.healthconnect.dto.request.DoctorFilterDto;
+import in.healthconnect.dto.request.PortalLoginRequest;
 import in.healthconnect.dto.response.DoctorResponse;
 import in.healthconnect.entity.Doctor;
 import in.healthconnect.exception.EmailExistException;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.DoctorRepository;
+import in.healthconnect.security.dto.CreateUserRequest;
+import in.healthconnect.security.service.UserService;
 import in.healthconnect.utils.CommonUtils;
 import in.healthconnect.utils.DoctorUtils;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,31 +29,41 @@ public class DoctorService {
 
     private final DoctorRepository doctorRepository;
     private final DoctorUtils doctorUtils;
+    private final DoctorSpecialtyService doctorSpecialtyService;
+    private final UserService userService;
 
-    public DoctorResponse createDoctor(CreateDoctorRequest createDoctorRequest) {
-        if (doctorRepository.existsByEmailIgnoreCase(createDoctorRequest.getEmail().trim())) {
-            throw new EmailExistException("Doctor with this email '" + createDoctorRequest.getEmail() + "' already exists");
+    // Create a doctor, map any specialties, and optionally create their login - all in one
+    // transaction so a failure (e.g. duplicate username) leaves nothing half-created.
+    @Transactional
+    public DoctorResponse createDoctor(CreateDoctorRequest request) {
+        if (doctorRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
+            throw new EmailExistException("Doctor with this email '" + request.getEmail() + "' already exists");
         }
-        String doctorCode = doctorUtils.generateDoctorCode();
-
-        //step3 create doctor objects using builder
-       Doctor doctor = Doctor.builder()
-                .doctorCode(doctorCode)
-                .firstName(createDoctorRequest.getFirstName())
-                .lastName(createDoctorRequest.getLastName())
-                .dateOfBirth(createDoctorRequest.getDateOfBirth())
-                .gender(createDoctorRequest.getGender())
-                .phone(createDoctorRequest.getPhone())
-                .email(createDoctorRequest.getEmail())
-               .qualification(createDoctorRequest.getQualification())
-                .experienceYears(createDoctorRequest.getExperienceYears())
-               .consultationFee(createDoctorRequest.getConsultationFee())
-                .build();
-
-        //step4 save that save object
-        doctor = doctorRepository.save(doctor);
-        //step5 retun doctorResponce
+        Doctor doctor = doctorRepository.save(buildDoctor(request, doctorUtils.generateDoctorCode()));
+        assignSpecialtiesIfAny(doctor.getId(), request.getSpecialtyIds());
+        createLoginIfAny(doctor.getId(), request.getLogin());
         return DoctorUtils.mapToDoctorResponse(doctor);
+    }
+
+    private Doctor buildDoctor(CreateDoctorRequest r, String code) {
+        return Doctor.builder().doctorCode(code)
+                .firstName(r.getFirstName()).lastName(r.getLastName())
+                .dateOfBirth(r.getDateOfBirth()).gender(r.getGender())
+                .phone(r.getPhone()).email(r.getEmail()).qualification(r.getQualification())
+                .experienceYears(r.getExperienceYears()).consultationFee(r.getConsultationFee()).build();
+    }
+
+    private void assignSpecialtiesIfAny(Integer doctorId, List<Integer> specialtyIds) {
+        if (specialtyIds != null && !specialtyIds.isEmpty()) {
+            doctorSpecialtyService.assignSpecialties(doctorId, specialtyIds);
+        }
+    }
+
+    private void createLoginIfAny(Integer doctorId, PortalLoginRequest login) {
+        if (login != null) {
+            userService.create(new CreateUserRequest(
+                    login.username(), login.password(), login.roleId(), doctorId, null, true));
+        }
     }
 
     public  Page<DoctorResponse> searchDoctors(DoctorFilterDto doctorFilterDto, String search, Integer doctorId, Pageable pageable) {

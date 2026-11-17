@@ -51,4 +51,7 @@ private String email;
 private String address;
 
 private BloodGroup bloodGroup;
+
+    // Optional on create: a login to create for this patient in the same transaction.
+    private PortalLoginRequest login;
  }

@@ -11,6 +11,9 @@ public interface DoctorSpecialtyRepository
 
     List<DoctorSpecialtyMap> findByDoctorId(Integer doctorId);
 
+    // Doctors offering a given specialty (for availability-first patient search).
+    List<DoctorSpecialtyMap> findBySpecialtyId(Integer specialtyId);
+
 
 //    @Modifying
 //    @Query("""

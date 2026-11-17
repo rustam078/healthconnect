@@ -26,4 +26,9 @@ public class CreateConsultationRequest {
     @Valid
     @Builder.Default
     private List<PrescriptionMedicineRequest> medicines = new ArrayList<>();
+
+    // Tests/investigations the doctor advises; may be empty.
+    @Valid
+    @Builder.Default
+    private List<RecommendedTestRequest> tests = new ArrayList<>();
 }

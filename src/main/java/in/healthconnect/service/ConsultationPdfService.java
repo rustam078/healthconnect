@@ -5,6 +5,7 @@ import in.healthconnect.entity.Appointment;
 import in.healthconnect.entity.Consultation;
 import in.healthconnect.entity.Patient;
 import in.healthconnect.entity.PrescriptionMedicine;
+import in.healthconnect.entity.RecommendedTest;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.ConsultationRepository;
 import in.healthconnect.setting.service.SettingService;
@@ -64,6 +65,11 @@ public class ConsultationPdfService {
         String template = settingService.getRequired(TEMPLATE_SETTING);
 
         Map<String, String> values = new LinkedHashMap<>();
+        // Theme controls - editable settings so the PDF's look can change without code.
+        values.put("{{primaryColor}}", esc(settingService.getOrDefault("consultation.pdf.primary-color", "#0b7285")));
+        values.put("{{headerPaddingTop}}", esc(settingService.getOrDefault("consultation.pdf.header-padding-top", "0px")));
+        values.put("{{headerAlign}}", esc(settingService.getOrDefault("consultation.pdf.header-align", "left")));
+        values.put("{{bodyPadding}}", esc(settingService.getOrDefault("consultation.pdf.body-padding", "0 10mm")));
         values.put("{{clinicName}}", esc(clinicName));
         values.put("{{documentDate}}", LocalDate.now(IST).format(DATE_FMT));
         values.put("{{patientName}}", esc(fullName(patient.getFirstName(), patient.getLastName())));
@@ -83,7 +89,22 @@ public class ConsultationPdfService {
             html = html.replace(e.getKey(), e.getValue());
         }
         // Rows go in last: their escaped cell values never contain a placeholder token.
-        return html.replace("{{prescriptionRows}}", prescriptionRows(consultation.getMedicines()));
+        html = html.replace("{{prescriptionRows}}", prescriptionRows(consultation.getMedicines()));
+        return html.replace("{{recommendedTestRows}}", recommendedTestRows(consultation.getRecommendedTests()));
+    }
+
+    private String recommendedTestRows(List<RecommendedTest> tests) {
+        if (tests == null || tests.isEmpty()) {
+            return "<tr><td class=\"empty\" colspan=\"2\">No tests were advised.</td></tr>";
+        }
+        StringBuilder rows = new StringBuilder();
+        for (RecommendedTest t : tests) {
+            rows.append("<tr>")
+                    .append("<td>").append(dash(esc(t.getTestName()))).append("</td>")
+                    .append("<td>").append(dash(esc(t.getInstructions()))).append("</td>")
+                    .append("</tr>");
+        }
+        return rows.toString();
     }
 
     private String prescriptionRows(List<PrescriptionMedicine> medicines) {

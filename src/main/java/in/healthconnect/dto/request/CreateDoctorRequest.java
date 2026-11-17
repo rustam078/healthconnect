@@ -52,4 +52,9 @@ private Integer experienceYears;
     @DecimalMin(value = "0.0")
 private BigDecimal consultationFee;
 
+    // Optional on create: specialties to map and a login to create in the same transaction.
+    private java.util.List<Integer> specialtyIds;
+
+    private PortalLoginRequest login;
+
 }

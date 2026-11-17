@@ -3,9 +3,11 @@ package in.healthconnect.service;
 import in.healthconnect.dto.request.CreateConsultationRequest;
 import in.healthconnect.dto.response.ConsultationResponse;
 import in.healthconnect.dto.response.PrescriptionMedicineResponse;
+import in.healthconnect.dto.response.RecommendedTestResponse;
 import in.healthconnect.entity.Appointment;
 import in.healthconnect.entity.Consultation;
 import in.healthconnect.entity.PrescriptionMedicine;
+import in.healthconnect.entity.RecommendedTest;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.exception.AppointmentConflictException;
 import in.healthconnect.exception.ResourceNotFoundException;
@@ -67,6 +69,12 @@ public class ConsultationService {
                         .instructions(m.getInstructions())
                         .build()));
 
+        request.getTests().forEach(t -> consultation.addRecommendedTest(
+                RecommendedTest.builder()
+                        .testName(t.getTestName())
+                        .instructions(t.getInstructions())
+                        .build()));
+
         Consultation saved = consultationRepository.save(consultation);
 
         return mapToResponse(saved);
@@ -96,6 +104,14 @@ public class ConsultationService {
                         .build())
                 .toList();
 
+        List<RecommendedTestResponse> tests = consultation.getRecommendedTests().stream()
+                .map(t -> RecommendedTestResponse.builder()
+                        .id(t.getId())
+                        .testName(t.getTestName())
+                        .instructions(t.getInstructions())
+                        .build())
+                .toList();
+
         return ConsultationResponse.builder()
                 .id(consultation.getId())
                 .appointmentId(consultation.getAppointment().getId())
@@ -103,6 +119,7 @@ public class ConsultationService {
                 .diagnosis(consultation.getDiagnosis())
                 .notes(consultation.getNotes())
                 .medicines(medicines)
+                .tests(tests)
                 .createdAt(consultation.getCreatedAt().atZone(IST).toLocalDateTime())
                 .updatedAt(consultation.getUpdatedAt().atZone(IST).toLocalDateTime())
                 .build();

@@ -3,6 +3,9 @@ package in.healthconnect.service;
 import in.healthconnect.specificationFilter.PatientSpecification;
 import in.healthconnect.dto.request.PatientSearchRequest;
 import in.healthconnect.dto.request.CreatePatientRequest;
+import in.healthconnect.dto.request.PortalLoginRequest;
+import in.healthconnect.security.dto.CreateUserRequest;
+import in.healthconnect.security.service.UserService;
 import in.healthconnect.dto.response.AppointmentResponse;
 import in.healthconnect.dto.response.PatientDetailResponse;
 import in.healthconnect.dto.response.PatientResponse;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +39,11 @@ public class PatientService {
     // it never creates or changes one. Booking stays in AppointmentService.
     @Autowired
     private AppointmentRepository appointmentRepository;
+    @Autowired
+    private UserService userService;
 
+    // Create a patient and optionally their login in one transaction (rolls back together).
+    @Transactional
     public PatientResponse createPatient(CreatePatientRequest request) {
         //step1  Check duplicate email
         if (patientRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
@@ -60,8 +68,16 @@ public class PatientService {
 
         //step4 save that patient object
         patient = patientRepository.save(patient);
-        //step5 retun PatientResponse
+        //step5 optionally create the linked login, then return PatientResponse
+        createLoginIfAny(patient.getId(), request.getLogin());
         return PatientUtils.mapToPatientResponse(patient);
+    }
+
+    private void createLoginIfAny(Integer patientId, PortalLoginRequest login) {
+        if (login != null) {
+            userService.create(new CreateUserRequest(
+                    login.username(), login.password(), login.roleId(), null, patientId, true));
+        }
     }
 
 
@@ -133,6 +149,13 @@ public class PatientService {
     }
 
     // ---------- patient record page ----------
+
+    // Patient summaries for a set of ids (used by the doctor's department list).
+    @Transactional(readOnly = true)
+    public List<PatientResponse> findSummaries(Collection<Integer> ids) {
+        return patientRepository.findAllById(ids).stream()
+                .map(PatientUtils::mapToPatientResponse).toList();
+    }
 
     @Transactional(readOnly = true)
     public PatientDetailResponse getPatientDetails(Integer id) {

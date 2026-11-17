@@ -1,6 +1,7 @@
 package in.healthconnect.security.entity;
 
 import in.healthconnect.entity.BaseEntity;
+import in.healthconnect.security.model.DataScope;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -34,4 +35,10 @@ public class Role extends BaseEntity {
     @CollectionTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default
     private Set<RolePermission> permissions = new LinkedHashSet<>();
+
+    // Which rows this role may see: ALL, its DEPARTMENT, or only its own (SELF).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "data_scope", nullable = false, length = 20)
+    @Builder.Default
+    private DataScope dataScope = DataScope.SELF;
 }
