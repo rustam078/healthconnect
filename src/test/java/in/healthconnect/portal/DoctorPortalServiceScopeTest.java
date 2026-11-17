@@ -4,10 +4,16 @@ import in.healthconnect.dto.response.PatientResponse;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.report.ReportService;
 import in.healthconnect.repository.AppointmentRepository;
+import in.healthconnect.repository.ConsultationRepository;
+import in.healthconnect.repository.OrderedTestRepository;
+import in.healthconnect.repository.ReferralRepository;
+import in.healthconnect.service.SlotAvailabilityService;
+import in.healthconnect.service.SpecialityService;
 import in.healthconnect.service.AppointmentService;
 import in.healthconnect.service.ConsultationPdfService;
 import in.healthconnect.service.ConsultationService;
 import in.healthconnect.service.PatientService;
+import in.healthconnect.service.TestOrderService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -27,9 +33,17 @@ class DoctorPortalServiceScopeTest {
     private final ReportService reportService = mock(ReportService.class);
     private final PatientAccessPolicy policy = mock(PatientAccessPolicy.class);
     private final PatientService patientService = mock(PatientService.class);
+    private final TestOrderService testOrderService = mock(TestOrderService.class);
+    private final ConsultationRepository consultationRepository = mock(ConsultationRepository.class);
+    private final OrderedTestRepository orderedTestRepository = mock(OrderedTestRepository.class);
+    private final SlotAvailabilityService slotAvailabilityService = mock(SlotAvailabilityService.class);
+    private final ReferralRepository referralRepository = mock(ReferralRepository.class);
+    private final SpecialityService specialityService = mock(SpecialityService.class);
 
     private final DoctorPortalService service = new DoctorPortalService(currentUser, appointmentService,
-            appointmentRepository, consultationService, consultationPdfService, reportService, policy, patientService);
+            appointmentRepository, consultationService, consultationPdfService, reportService, policy,
+            patientService, testOrderService, consultationRepository, orderedTestRepository,
+            slotAvailabilityService, referralRepository, specialityService);
 
     @Test
     void departmentPatientsComeFromThePolicysVisibleIds() {

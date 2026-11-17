@@ -33,33 +33,34 @@ public class ConsultationService {
     // transaction: either the whole record lands or none of it does. Completing the
     // appointment is a separate, deliberate action (the "Mark completed" button), so this
     // leaves the appointment's status untouched.
+    // Upsert the visit record: a new consultation, or an update to the existing one (so the
+    // doctor can save a draft, come back, and complete it). Medicines and tests are replaced.
     @Transactional
     public ConsultationResponse createConsultation(Integer appointmentId, CreateConsultationRequest request) {
 
         Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() ->
                 new ResourceNotFoundException("Appointment with id '" + appointmentId + "' does not exist"));
 
-        // A cancelled slot never happened, so there is nothing to write up. A scheduled or
-        // an already-completed appointment can both take a consultation.
+        // A cancelled slot never happened, so there is nothing to write up.
         if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
             throw new AppointmentConflictException(
                     "A consultation cannot be recorded for a cancelled appointment.");
         }
 
-        // Belt to the unique constraint's braces: a friendly error instead of a raw DB
-        // violation if a consultation already exists for this appointment.
-        if (consultationRepository.existsByAppointmentId(appointmentId)) {
-            throw new AppointmentConflictException(
-                    "A consultation has already been recorded for this appointment.");
-        }
+        Consultation consultation = consultationRepository.findByAppointmentId(appointmentId)
+                .orElseGet(() -> Consultation.builder().appointment(appointment).build());
+        consultation.setChiefComplaint(request.getChiefComplaint());
+        consultation.setSeverity(request.getSeverity());
+        consultation.setDiagnosis(request.getDiagnosis());
+        consultation.setNotes(request.getNotes());
+        applyMedicines(consultation, request);
+        applyTests(consultation, request);
 
-        Consultation consultation = Consultation.builder()
-                .appointment(appointment)
-                .chiefComplaint(request.getChiefComplaint())
-                .diagnosis(request.getDiagnosis())
-                .notes(request.getNotes())
-                .build();
+        return mapToResponse(consultationRepository.save(consultation));
+    }
 
+    private void applyMedicines(Consultation consultation, CreateConsultationRequest request) {
+        consultation.getMedicines().clear();
         request.getMedicines().forEach(m -> consultation.addMedicine(
                 PrescriptionMedicine.builder()
                         .medicineName(m.getMedicineName())
@@ -68,16 +69,15 @@ public class ConsultationService {
                         .duration(m.getDuration())
                         .instructions(m.getInstructions())
                         .build()));
+    }
 
+    private void applyTests(Consultation consultation, CreateConsultationRequest request) {
+        consultation.getRecommendedTests().clear();
         request.getTests().forEach(t -> consultation.addRecommendedTest(
                 RecommendedTest.builder()
                         .testName(t.getTestName())
                         .instructions(t.getInstructions())
                         .build()));
-
-        Consultation saved = consultationRepository.save(consultation);
-
-        return mapToResponse(saved);
     }
 
     // The visit record for one appointment, medicines and all, for later review.
@@ -89,6 +89,12 @@ public class ConsultationService {
                         "No consultation recorded for appointment id '" + appointmentId + "'"));
 
         return mapToResponse(consultation);
+    }
+
+    // The consultation for an appointment, or null if none has been written (for history views).
+    @Transactional
+    public ConsultationResponse getByAppointmentIdOrNull(Integer appointmentId) {
+        return consultationRepository.findByAppointmentId(appointmentId).map(this::mapToResponse).orElse(null);
     }
 
     private ConsultationResponse mapToResponse(Consultation consultation) {
@@ -116,6 +122,7 @@ public class ConsultationService {
                 .id(consultation.getId())
                 .appointmentId(consultation.getAppointment().getId())
                 .chiefComplaint(consultation.getChiefComplaint())
+                .severity(consultation.getSeverity())
                 .diagnosis(consultation.getDiagnosis())
                 .notes(consultation.getNotes())
                 .medicines(medicines)

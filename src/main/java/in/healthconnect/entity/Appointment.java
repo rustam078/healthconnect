@@ -41,4 +41,11 @@ public class Appointment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private AppointmentStatus status;
+
+    @Column(name = "appointment_type", nullable = false, length = 20)
+    private String appointmentType;
+
+    @Column(name = "follow_up", nullable = false)
+    private LocalDate followUpValidUntil;
+
 }

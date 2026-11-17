@@ -10,4 +10,7 @@ public interface PatientReportRepository extends JpaRepository<PatientReport, In
 
     // Newest first, for a patient's report list.
     List<PatientReport> findByPatientIdOrderByCreatedAtDesc(Integer patientId);
+
+    // Reports attached to one appointment (for a visit's record).
+    List<PatientReport> findByAppointmentIdOrderByCreatedAtDesc(Integer appointmentId);
 }

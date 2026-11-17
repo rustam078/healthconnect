@@ -17,6 +17,8 @@ public class CreateConsultationRequest {
     @NotBlank(message = "Chief complaint is required")
     private String chiefComplaint;
 
+    private in.healthconnect.entity.enums.Severity severity;
+
     private String diagnosis;
 
     private String notes;

@@ -30,4 +30,9 @@ public class CreateAppointmentRequest {
     @NotNull(message = "Duration is required")
     @Positive(message = "Duration must be greater than zero")
     private Integer durationMinutes;
+
+    @NotNull(message = "Appointment type is required")
+    private String appointmentType;
+
+    private LocalDate followUpValidUntil;
 }

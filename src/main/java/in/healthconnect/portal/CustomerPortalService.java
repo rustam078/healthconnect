@@ -83,6 +83,7 @@ public class CustomerPortalService {
                 .appointmentDate(request.date())
                 .startTime(request.startTime())
                 .durationMinutes(SLOT_MINUTES)
+                .appointmentType("NEW")
                 .build();
         return appointmentService.createAppointment(create);
     }

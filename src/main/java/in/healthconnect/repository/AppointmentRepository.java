@@ -62,6 +62,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @EntityGraph(attributePaths = {"doctor", "patient"})
     List<Appointment> findByDoctorIdAndPatientIdOrderByAppointmentDateDescStartTimeDesc(Integer doctorId, Integer patientId);
 
+    // A doctor's whole day, earliest slot first, with patient loaded for the schedule table.
+    @EntityGraph(attributePaths = {"patient"})
+    List<Appointment> findByDoctorIdAndAppointmentDateOrderByStartTimeAsc(Integer doctorId, LocalDate appointmentDate);
+
     // Does this doctor have any appointment with this patient? (ownership for history/reports)
     boolean existsByDoctorIdAndPatientId(Integer doctorId, Integer patientId);
 
@@ -112,4 +116,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     LocalDate findLastVisitDate(@Param("patientId") Integer patientId,
                                 @Param("status") AppointmentStatus status,
                                 @Param("today") LocalDate today);
+
+    @Query("""
+            SELECT MIN(a.appointmentDate)
+            FROM Appointment a
+            WHERE a.patient.id = :patientId
+              AND a.status = :status
+              AND a.appointmentDate >= :today
+            """)
+    LocalDate findNextFollowUpDate(@Param("patientId") Integer patientId,
+                                   @Param("status") AppointmentStatus status,
+                                   @Param("today") LocalDate today);
+
+    // A patient's entire visit history across all doctors (newest first), for the doctor's
+    // cross-doctor history view.
+    @EntityGraph(attributePaths = {"doctor", "patient"})
+    List<Appointment> findByPatientIdOrderByAppointmentDateDescStartTimeDesc(Integer patientId);
 }

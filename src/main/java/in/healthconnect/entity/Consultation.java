@@ -27,6 +27,10 @@ public class Consultation extends BaseEntity {
     @Column(name = "chief_complaint", columnDefinition = "TEXT")
     private String chiefComplaint;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "severity", length = 20)
+    private in.healthconnect.entity.enums.Severity severity;
+
     @Column(name = "diagnosis", columnDefinition = "TEXT")
     private String diagnosis;
 

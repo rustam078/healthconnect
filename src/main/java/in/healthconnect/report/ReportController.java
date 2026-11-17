@@ -1,6 +1,8 @@
 package in.healthconnect.report;
 
+import in.healthconnect.dto.response.OrderedTestResponse;
 import in.healthconnect.report.ReportService.ReportFile;
+import in.healthconnect.service.TestOrderService;
 import in.healthconnect.wrapper.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -20,16 +22,26 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
+    private final TestOrderService testOrderService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<ReportResponse>> upload(@RequestParam Integer patientId,
                                                               @RequestParam(required = false) Integer appointmentId,
+                                                              @RequestParam(required = false) Integer orderedTestId,
                                                               @RequestParam String title,
                                                               @RequestParam("file") MultipartFile file) {
         ReportResponse saved = reportService.upload(
                 new ReportService.UploadReportCommand(patientId, appointmentId, title, file));
+        if (orderedTestId != null) {
+            testOrderService.markAvailable(orderedTestId, saved.id());
+        }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(saved, "Report uploaded"));
+    }
+
+    @GetMapping("/appointments/{appointmentId}/tests")
+    public ResponseEntity<ApiResponse<List<OrderedTestResponse>>> orderedTests(@PathVariable Integer appointmentId) {
+        return ResponseEntity.ok(ApiResponse.success(testOrderService.listOrdered(appointmentId)));
     }
 
     @GetMapping
@@ -44,8 +56,10 @@ public class ReportController {
     }
 
     public static ResponseEntity<byte[]> inline(ReportFile reportFile) {
+        String contentType = reportFile.report().getContentType();
+        MediaType mediaType = contentType == null ? MediaType.APPLICATION_PDF : MediaType.parseMediaType(contentType);
         return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
+                .contentType(mediaType)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename=\"" + reportFile.report().getOriginalFileName() + "\"")
                 .body(reportFile.bytes());

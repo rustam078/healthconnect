@@ -15,6 +15,7 @@ public class ConsultationResponse {
     private Integer id;
     private Integer appointmentId;
     private String chiefComplaint;
+    private in.healthconnect.entity.enums.Severity severity;
     private String diagnosis;
     private String notes;
 

@@ -54,9 +54,7 @@ public class AppointmentService {
 
         // FIRST → date/time validation
          CommonUtils.validateDateAndTime(request.getAppointmentDate(), request.getStartTime());
-
         validateDoctorAvailability(doctor,request.getAppointmentDate(),request.getStartTime(),endTime);
-
         validateAppointmentConflict(request.getDoctorId(), request.getAppointmentDate(), request.getStartTime(), endTime);
 
 
@@ -69,13 +67,12 @@ public class AppointmentService {
                 .endTime(endTime)
                 .durationMinutes(request.getDurationMinutes())
                 .status(AppointmentStatus.SCHEDULED)
+                .appointmentType(request.getAppointmentType())
+                .followUpValidUntil(request.getFollowUpValidUntil() != null ? request.getFollowUpValidUntil() : request.getAppointmentDate().plusDays(30))
                 .build();
 
         //save appointment
-
-        Appointment savedAppointment =
-                appointmentRepository.save(appointment);
-
+        Appointment savedAppointment = appointmentRepository.save(appointment);
         //return response
       return AppointmentUtils.mapToAppointmentResponse(savedAppointment);
     }
@@ -210,9 +207,7 @@ public class AppointmentService {
 
 
     private void validateAppointmentConflict(Integer doctorId, LocalDate appointmentDate, LocalTime startTime, LocalTime endTime) {
-
         boolean conflict = appointmentRepository.existsOverlappingAppointment(doctorId, appointmentDate, startTime, endTime, AppointmentStatus.CANCELLED);
-
         if (conflict) {
             throw new AppointmentConflictException("Doctor already has an appointment during the requested time");
         }
