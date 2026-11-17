@@ -25,7 +25,7 @@ public class JwtService {
     private final long expiryMinutes;
 
     public JwtService(@Value("${jwt.secret:dev-only-change-me-secret-key-min-32-bytes-long!!}") String secret,
-                      @Value("${jwt.expiry-minutes:120}") long expiryMinutes) {
+                      @Value("${jwt.expiry-minutes:1440}") long expiryMinutes) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiryMinutes = expiryMinutes;
     }
