@@ -40,6 +40,15 @@ public class ReportStorageService {
         }
     }
 
+    // Permanently remove a stored file (ignored if it is already gone).
+    public void delete(String storedFileName) {
+        try {
+            Files.deleteIfExists(baseDir.resolve(storedFileName));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not delete report file: " + storedFileName, e);
+        }
+    }
+
     private void ensureDir() {
         try {
             Files.createDirectories(baseDir);
