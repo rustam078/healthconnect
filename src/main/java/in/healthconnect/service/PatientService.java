@@ -41,6 +41,8 @@ public class PatientService {
     private AppointmentRepository appointmentRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private in.healthconnect.security.repository.UserRepository userRepository;
 
     // Create a patient and optionally their login in one transaction (rolls back together).
     @Transactional
@@ -153,8 +155,21 @@ public class PatientService {
     // Patient summaries for a set of ids (used by the doctor's department list).
     @Transactional(readOnly = true)
     public List<PatientResponse> findSummaries(Collection<Integer> ids) {
-        return patientRepository.findAllById(ids).stream()
+        List<PatientResponse> patients = patientRepository.findAllById(ids).stream()
                 .map(PatientUtils::mapToPatientResponse).toList();
+        attachAvatars(patients);
+        return patients;
+    }
+
+    // Fills each patient's avatarFileId from their linked login account, in one query.
+    private void attachAvatars(List<PatientResponse> patients) {
+        List<Integer> ids = patients.stream().map(PatientResponse::getId).toList();
+        if (ids.isEmpty()) {
+            return;
+        }
+        java.util.Map<Integer, Integer> byPatient = userRepository.avatarIdsByPatientIds(ids).stream()
+                .collect(java.util.stream.Collectors.toMap(row -> (Integer) row[0], row -> (Integer) row[1]));
+        patients.forEach(p -> p.setAvatarFileId(byPatient.get(p.getId())));
     }
 
     @Transactional(readOnly = true)

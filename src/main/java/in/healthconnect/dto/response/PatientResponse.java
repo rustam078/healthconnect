@@ -23,4 +23,5 @@ private String phone;
 private String email;
 private String address;
 private BloodGroup bloodGroup;
+private Integer avatarFileId;
 }

@@ -92,6 +92,9 @@ public class DoctorAvailabilityService {
 
 
 
+    // One session for the whole method so the lazy Specialty proxies can be read while mapping
+    // (required now that spring.jpa.open-in-view=false).
+    @Transactional
     public AssignDoctorSpecialtiesResponse getDoctorDetails(Integer doctorId) {
 
         // 1. Fetch doctor

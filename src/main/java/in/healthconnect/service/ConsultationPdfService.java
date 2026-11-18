@@ -1,13 +1,10 @@
 package in.healthconnect.service;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import in.healthconnect.entity.Appointment;
-import in.healthconnect.entity.Consultation;
-import in.healthconnect.entity.Patient;
-import in.healthconnect.entity.PrescriptionMedicine;
-import in.healthconnect.entity.RecommendedTest;
+import in.healthconnect.entity.*;
 import in.healthconnect.exception.ResourceNotFoundException;
 import in.healthconnect.repository.ConsultationRepository;
+import in.healthconnect.repository.OrderedTestRepository;
 import in.healthconnect.setting.service.SettingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,6 +39,7 @@ public class ConsultationPdfService {
 
     private final ConsultationRepository consultationRepository;
     private final SettingService settingService;
+    private final OrderedTestRepository orderedTestRepository;
 
     // The consultation for one appointment, rendered to PDF bytes.
     @Transactional(readOnly = true)
@@ -90,18 +88,19 @@ public class ConsultationPdfService {
         }
         // Rows go in last: their escaped cell values never contain a placeholder token.
         html = html.replace("{{prescriptionRows}}", prescriptionRows(consultation.getMedicines()));
-        return html.replace("{{recommendedTestRows}}", recommendedTestRows(consultation.getRecommendedTests()));
+        List<OrderedTest> byAppointmentIdOrderByIdAsc = orderedTestRepository.findByAppointmentIdOrderByIdAsc(appointment.getId());
+        return html.replace("{{recommendedTestRows}}", recommendedTestRows(byAppointmentIdOrderByIdAsc));
     }
 
-    private String recommendedTestRows(List<RecommendedTest> tests) {
+    private String recommendedTestRows(List<OrderedTest> tests) {
         if (tests == null || tests.isEmpty()) {
             return "<tr><td class=\"empty\" colspan=\"2\">No tests were advised.</td></tr>";
         }
         StringBuilder rows = new StringBuilder();
-        for (RecommendedTest t : tests) {
+        for (OrderedTest t : tests) {
             rows.append("<tr>")
                     .append("<td>").append(dash(esc(t.getTestName()))).append("</td>")
-                    .append("<td>").append(dash(esc(t.getInstructions()))).append("</td>")
+                    .append("<td>").append(dash(esc(t.getCategory().name()))).append("</td>")
                     .append("</tr>");
         }
         return rows.toString();

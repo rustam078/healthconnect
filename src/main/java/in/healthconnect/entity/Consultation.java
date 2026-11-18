@@ -1,5 +1,6 @@
 package in.healthconnect.entity;
 
+import in.healthconnect.entity.enums.Severity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -29,7 +30,7 @@ public class Consultation extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "severity", length = 20)
-    private in.healthconnect.entity.enums.Severity severity;
+    private Severity severity;
 
     @Column(name = "diagnosis", columnDefinition = "TEXT")
     private String diagnosis;
@@ -44,21 +45,10 @@ public class Consultation extends BaseEntity {
     @Builder.Default
     private List<PrescriptionMedicine> medicines = new ArrayList<>();
 
-    // The tests/investigations advised at this visit, living and dying with the consultation.
-    @OneToMany(mappedBy = "consultation", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("id ASC")
-    @Builder.Default
-    private List<RecommendedTest> recommendedTests = new ArrayList<>();
-
     // Keeps both sides of the relationship in step, so the foreign key on the medicine
     // is always set before the cascade saves it.
     public void addMedicine(PrescriptionMedicine medicine) {
         medicine.setConsultation(this);
         this.medicines.add(medicine);
-    }
-
-    public void addRecommendedTest(RecommendedTest test) {
-        test.setConsultation(this);
-        this.recommendedTests.add(test);
     }
 }

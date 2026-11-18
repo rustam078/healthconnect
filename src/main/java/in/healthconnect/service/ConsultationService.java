@@ -3,11 +3,9 @@ package in.healthconnect.service;
 import in.healthconnect.dto.request.CreateConsultationRequest;
 import in.healthconnect.dto.response.ConsultationResponse;
 import in.healthconnect.dto.response.PrescriptionMedicineResponse;
-import in.healthconnect.dto.response.RecommendedTestResponse;
 import in.healthconnect.entity.Appointment;
 import in.healthconnect.entity.Consultation;
 import in.healthconnect.entity.PrescriptionMedicine;
-import in.healthconnect.entity.RecommendedTest;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.exception.AppointmentConflictException;
 import in.healthconnect.exception.ResourceNotFoundException;
@@ -54,7 +52,6 @@ public class ConsultationService {
         consultation.setDiagnosis(request.getDiagnosis());
         consultation.setNotes(request.getNotes());
         applyMedicines(consultation, request);
-        applyTests(consultation, request);
 
         return mapToResponse(consultationRepository.save(consultation));
     }
@@ -71,14 +68,6 @@ public class ConsultationService {
                         .build()));
     }
 
-    private void applyTests(Consultation consultation, CreateConsultationRequest request) {
-        consultation.getRecommendedTests().clear();
-        request.getTests().forEach(t -> consultation.addRecommendedTest(
-                RecommendedTest.builder()
-                        .testName(t.getTestName())
-                        .instructions(t.getInstructions())
-                        .build()));
-    }
 
     // The visit record for one appointment, medicines and all, for later review.
     @Transactional
@@ -110,14 +99,6 @@ public class ConsultationService {
                         .build())
                 .toList();
 
-        List<RecommendedTestResponse> tests = consultation.getRecommendedTests().stream()
-                .map(t -> RecommendedTestResponse.builder()
-                        .id(t.getId())
-                        .testName(t.getTestName())
-                        .instructions(t.getInstructions())
-                        .build())
-                .toList();
-
         return ConsultationResponse.builder()
                 .id(consultation.getId())
                 .appointmentId(consultation.getAppointment().getId())
@@ -126,7 +107,6 @@ public class ConsultationService {
                 .diagnosis(consultation.getDiagnosis())
                 .notes(consultation.getNotes())
                 .medicines(medicines)
-                .tests(tests)
                 .createdAt(consultation.getCreatedAt().atZone(IST).toLocalDateTime())
                 .updatedAt(consultation.getUpdatedAt().atZone(IST).toLocalDateTime())
                 .build();

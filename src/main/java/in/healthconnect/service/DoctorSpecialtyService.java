@@ -40,6 +40,7 @@ public class DoctorSpecialtyService {
                         Collectors.mapping(m -> m.getSpecialty().getName(), Collectors.toList())));
     }
 
+    @Transactional
     public AssignDoctorSpecialtiesResponse assignSpecialties(Integer doctorId, List<Integer> request
     ) {
         //  Find the doctor.
@@ -121,6 +122,7 @@ public class DoctorSpecialtyService {
         );
     }
 
+    @Transactional
     public AssignDoctorSpecialtiesResponse getSpecialtieswithDoctorId(Integer doctorId) {
 
         Doctor doctor = doctorRepository.findByIdAndDeletedFalse(doctorId)
