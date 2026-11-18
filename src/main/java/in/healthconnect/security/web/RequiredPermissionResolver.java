@@ -32,7 +32,9 @@ public class RequiredPermissionResolver {
     private static final List<Override> OVERRIDES = List.of(
             new Override("GET", "/api/v1/auth/me", AUTHENTICATED),
             new Override("POST", "/api/v1/widgets/*/data", "WIDGETS_VIEW"),
-            new Override("POST", "/api/v1/integration/**", "WIDGETS_VIEW"));
+            new Override("POST", "/api/v1/integration/**", "WIDGETS_VIEW"),
+            // Doctor search is a POST but only reads, so VIEW is enough.
+            new Override("POST", "/api/v1/doctors/search", "DOCTORS_VIEW"));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);

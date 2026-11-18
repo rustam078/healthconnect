@@ -73,6 +73,11 @@ class RequiredPermissionResolverTest {
     }
 
     @Test
+    void doctorSearchIsAView() {
+        assertEquals("DOCTORS_VIEW", required("POST", "/api/v1/doctors/search"));
+    }
+
+    @Test
     void authMeNeedsOnlyAuthentication() {
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/auth/me"));
     }
