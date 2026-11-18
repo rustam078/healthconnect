@@ -16,7 +16,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
             select new in.healthconnect.community.dto.ChatMessageDto(
                 msg.id, msg.communityId, msg.senderId,
                 coalesce(concat(d.firstName, ' ', d.lastName), concat(p.firstName, ' ', p.lastName), u.username),
-                msg.type, msg.body, msg.attachmentId, sf.originalFilename, msg.createdAt)
+                u.avatarFileId, msg.type, msg.body, msg.attachmentId, sf.originalFilename, msg.createdAt)
             from ChatMessage msg join User u on u.id = msg.senderId
                 left join Doctor d on d.id = u.doctorId
                 left join Patient p on p.id = u.patientId
@@ -29,7 +29,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
             select new in.healthconnect.community.dto.ChatMessageDto(
                 msg.id, msg.communityId, msg.senderId,
                 coalesce(concat(d.firstName, ' ', d.lastName), concat(p.firstName, ' ', p.lastName), u.username),
-                msg.type, msg.body, msg.attachmentId, sf.originalFilename, msg.createdAt)
+                u.avatarFileId, msg.type, msg.body, msg.attachmentId, sf.originalFilename, msg.createdAt)
             from ChatMessage msg join User u on u.id = msg.senderId
                 left join Doctor d on d.id = u.doctorId
                 left join Patient p on p.id = u.patientId

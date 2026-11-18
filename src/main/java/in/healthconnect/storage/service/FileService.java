@@ -56,6 +56,15 @@ public class FileService {
         return storage.load(file.getStorageKey());
     }
 
+    // Removes a file from disk and its reference row (used when replacing, e.g. a new avatar).
+    @Transactional
+    public void delete(Integer fileId) {
+        repository.findById(fileId).ifPresent((file) -> {
+            storage.delete(file.getStorageKey());
+            repository.delete(file);
+        });
+    }
+
     // Internal lookup (no access guard) for other modules that validate the attachment themselves.
     @Transactional(readOnly = true)
     public StoredFile get(Integer fileId) {

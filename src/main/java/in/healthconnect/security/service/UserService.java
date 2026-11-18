@@ -8,11 +8,15 @@ import in.healthconnect.security.entity.Role;
 import in.healthconnect.security.entity.User;
 import in.healthconnect.security.repository.RoleRepository;
 import in.healthconnect.security.repository.UserRepository;
+import in.healthconnect.storage.dto.StoredFileResponse;
+import in.healthconnect.storage.entity.enums.FileCategory;
+import in.healthconnect.storage.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,6 +28,22 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FileService fileService;
+
+    // Uploads a user's own profile image, points their account at it, and removes the previous photo.
+    @Transactional
+    public StoredFileResponse updateMyAvatar(Integer userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        Integer oldAvatarId = user.getAvatarFileId();
+        StoredFileResponse uploaded = fileService.upload(file, FileCategory.PROFILE_IMAGE, userId, userId);
+        user.setAvatarFileId(uploaded.id());
+        userRepository.save(user);
+        if (oldAvatarId != null) {
+            fileService.delete(oldAvatarId);
+        }
+        return uploaded;
+    }
 
     @Transactional(readOnly = true)
     public List<UserAdminResponse> list() {

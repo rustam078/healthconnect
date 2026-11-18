@@ -64,7 +64,7 @@ public class ChatMessageService {
                 : validateAttachment(request.fileId(), communityId, me.getId());
         ChatMessage saved = messageRepository.save(build(communityId, me.getId(), body, attachment));
         String attachmentName = attachment == null ? null : attachment.getOriginalFilename();
-        ChatMessageDto dto = ChatMessageDto.from(saved, displayName.of(me), attachmentName);
+        ChatMessageDto dto = ChatMessageDto.from(saved, displayName.of(me), me.getAvatarFileId(), attachmentName);
         eventPublisher.publishEvent(new ChatEvent(communityService.memberIds(communityId), ChatEvent.MESSAGE, dto));
         log.debug("Message {} sent to community {} by user {}", saved.getId(), communityId, me.getId());
         return dto;

@@ -44,7 +44,9 @@ public class RequiredPermissionResolver {
             new Override("POST", "/api/v1/communities/*/members", "COMMUNITIES_UPDATE"),
             // The file API authorizes per file inside the controller, so it only needs a login here.
             new Override("POST", "/api/v1/files/**", AUTHENTICATED),
-            new Override("GET", "/api/v1/files/**", AUTHENTICATED));
+            new Override("GET", "/api/v1/files/**", AUTHENTICATED),
+            // Any logged-in user may set their own profile photo (not a USERS admin action).
+            new Override("POST", "/api/v1/users/me/avatar", AUTHENTICATED));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);

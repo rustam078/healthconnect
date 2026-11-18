@@ -28,7 +28,8 @@ public interface CommunityMemberRepository extends JpaRepository<CommunityMember
 
     @Query("""
             select new in.healthconnect.community.dto.MemberDto(m.userId, u.username,
-                coalesce(concat(d.firstName, ' ', d.lastName), concat(p.firstName, ' ', p.lastName), u.username), m.role)
+                coalesce(concat(d.firstName, ' ', d.lastName), concat(p.firstName, ' ', p.lastName), u.username),
+                u.avatarFileId, m.role)
             from CommunityMember m join User u on u.id = m.userId
                 left join Doctor d on d.id = u.doctorId
                 left join Patient p on p.id = u.patientId

@@ -6,6 +6,7 @@ import in.healthconnect.security.entity.Role;
 import in.healthconnect.security.entity.User;
 import in.healthconnect.security.repository.RoleRepository;
 import in.healthconnect.security.repository.UserRepository;
+import in.healthconnect.storage.service.FileService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +24,8 @@ class UserServiceTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final RoleRepository roleRepository = mock(RoleRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-    private final UserService service = new UserService(userRepository, roleRepository, passwordEncoder);
+    private final FileService fileService = mock(FileService.class);
+    private final UserService service = new UserService(userRepository, roleRepository, passwordEncoder, fileService);
 
     private Role role() {
         Role r = Role.builder().name("DOCTOR").build();

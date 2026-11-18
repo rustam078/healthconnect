@@ -36,4 +36,8 @@ public class User extends BaseEntity {
 
     @Column(name = "patient_id")
     private Integer patientId;
+
+    // Points at a StoredFile (PROFILE_IMAGE) the user uploaded as their avatar; null = show initials.
+    @Column(name = "avatar_file_id")
+    private Integer avatarFileId;
 }
