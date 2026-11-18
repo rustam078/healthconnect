@@ -33,7 +33,7 @@ INSERT INTO role_permission (role_id, module, action)
 SELECT 1, m.module, a.action FROM
  (SELECT 'DASHBOARD' module UNION SELECT 'PATIENTS' UNION SELECT 'DOCTORS' UNION SELECT 'SPECIALTIES'
   UNION SELECT 'APPOINTMENTS' UNION SELECT 'SETTINGS' UNION SELECT 'WIDGETS' UNION SELECT 'REPORTS'
-  UNION SELECT 'ROLES' UNION SELECT 'USERS') m
+  UNION SELECT 'ROLES' UNION SELECT 'USERS' UNION SELECT 'COMMUNITIES') m
  CROSS JOIN (SELECT 'VIEW' action UNION SELECT 'CREATE' UNION SELECT 'UPDATE' UNION SELECT 'DELETE') a;
 
 -- DOCTOR / CUSTOMER: full use of their own portal
@@ -43,6 +43,9 @@ SELECT 2, 'DOCTOR_PORTAL', a.action FROM
 INSERT INTO role_permission (role_id, module, action)
 SELECT 3, 'CUSTOMER_PORTAL', a.action FROM
  (SELECT 'VIEW' action UNION SELECT 'CREATE' UNION SELECT 'UPDATE' UNION SELECT 'DELETE') a;
+
+-- Community chat: doctors and patients may use it (view/join/send); admin already has all via the union above.
+INSERT INTO role_permission (role_id, module, action) VALUES (2, 'COMMUNITIES', 'VIEW'), (3, 'COMMUNITIES', 'VIEW');
 
 -- ---------- Specialties ----------
 INSERT INTO specialties (id, name, description, is_deleted, created_at, updated_at) VALUES

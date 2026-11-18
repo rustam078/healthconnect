@@ -34,7 +34,17 @@ public class RequiredPermissionResolver {
             new Override("POST", "/api/v1/widgets/*/data", "WIDGETS_VIEW"),
             new Override("POST", "/api/v1/integration/**", "WIDGETS_VIEW"),
             // Doctor search is a POST but only reads, so VIEW is enough.
-            new Override("POST", "/api/v1/doctors/search", "DOCTORS_VIEW"));
+            new Override("POST", "/api/v1/doctors/search", "DOCTORS_VIEW"),
+            // Chat actions a member performs are reads, not group create/delete.
+            new Override("POST", "/api/v1/communities/*/messages", "COMMUNITIES_VIEW"),
+            new Override("DELETE", "/api/v1/communities/*/messages/*", "COMMUNITIES_VIEW"),
+            new Override("POST", "/api/v1/communities/*/join", "COMMUNITIES_VIEW"),
+            new Override("POST", "/api/v1/communities/*/read", "COMMUNITIES_VIEW"),
+            new Override("DELETE", "/api/v1/communities/*/members/*", "COMMUNITIES_VIEW"),
+            new Override("POST", "/api/v1/communities/*/members", "COMMUNITIES_UPDATE"),
+            // The file API authorizes per file inside the controller, so it only needs a login here.
+            new Override("POST", "/api/v1/files/**", AUTHENTICATED),
+            new Override("GET", "/api/v1/files/**", AUTHENTICATED));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);

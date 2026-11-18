@@ -16,7 +16,8 @@ public enum AppModule {
     ROLES("roles"),
     USERS("users"),
     CUSTOMER_PORTAL("customer-portal"),
-    DOCTOR_PORTAL("doctor-portal");
+    DOCTOR_PORTAL("doctor-portal"),
+    COMMUNITIES("communities");
 
     private final String pathSegment;
 

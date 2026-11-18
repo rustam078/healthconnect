@@ -78,6 +78,22 @@ class RequiredPermissionResolverTest {
     }
 
     @Test
+    void creatingAGroupNeedsCreateButSendingAMessageIsAView() {
+        assertEquals("COMMUNITIES_CREATE", required("POST", "/api/v1/communities"));
+        assertEquals("COMMUNITIES_DELETE", required("DELETE", "/api/v1/communities/7"));
+        assertEquals("COMMUNITIES_VIEW", required("POST", "/api/v1/communities/7/messages"));
+        assertEquals("COMMUNITIES_VIEW", required("POST", "/api/v1/communities/7/join"));
+        assertEquals("COMMUNITIES_VIEW", required("DELETE", "/api/v1/communities/7/members/3"));
+        assertEquals("COMMUNITIES_UPDATE", required("POST", "/api/v1/communities/7/members"));
+    }
+
+    @Test
+    void fileApiOnlyNeedsALogin() {
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("POST", "/api/v1/files"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/files/42"));
+    }
+
+    @Test
     void authMeNeedsOnlyAuthentication() {
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/auth/me"));
     }
