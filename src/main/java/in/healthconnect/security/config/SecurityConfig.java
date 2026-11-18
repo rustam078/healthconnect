@@ -4,6 +4,7 @@ import in.healthconnect.security.web.JwtAuthenticationFilter;
 import in.healthconnect.security.web.PermissionAuthorizationManager;
 import in.healthconnect.security.web.RestAccessDeniedHandler;
 import in.healthconnect.security.web.RestAuthenticationEntryPoint;
+import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,6 +40,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Async/error re-dispatches (e.g. the SSE chat stream completing) were already
+                        // authorized on the initial request; re-checking them has no SecurityContext and
+                        // only logs noisy "Access Denied" on an already-committed response.
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
                                 "/v3/api-docs.yaml", "/swagger-resources/**", "/webjars/**").permitAll()
