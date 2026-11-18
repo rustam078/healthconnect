@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,15 @@ public class DoctorSpecialtyService {
     private final DoctorSpecialtyRepository doctorSpecialtyRepository;
     private final DoctorRepository doctorRepository;
     private final SpecialityRepository specialityRepository;
+
+    // Specialty names grouped by doctor id, for several doctors in one query (used by search).
+    public Map<Integer, List<String>> specialtyNamesByDoctorIds(List<Integer> doctorIds) {
+        if (doctorIds.isEmpty()) return Map.of();
+        return doctorSpecialtyRepository.findByDoctorIdIn(doctorIds).stream()
+                .collect(Collectors.groupingBy(
+                        m -> m.getDoctor().getId(),
+                        Collectors.mapping(m -> m.getSpecialty().getName(), Collectors.toList())));
+    }
 
     public AssignDoctorSpecialtiesResponse assignSpecialties(Integer doctorId, List<Integer> request
     ) {

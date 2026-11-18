@@ -1,9 +1,7 @@
 package in.healthconnect.service;
 
+import in.healthconnect.dto.request.*;
 import in.healthconnect.specificationFilter.DoctorSpecification;
-import in.healthconnect.dto.request.CreateDoctorRequest;
-import in.healthconnect.dto.request.DoctorFilterDto;
-import in.healthconnect.dto.request.PortalLoginRequest;
 import in.healthconnect.dto.response.DoctorResponse;
 import in.healthconnect.entity.Doctor;
 import in.healthconnect.exception.EmailExistException;
@@ -20,7 +18,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,6 +32,7 @@ public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final DoctorUtils doctorUtils;
     private final DoctorSpecialtyService doctorSpecialtyService;
+    private final DoctorAvailabilityService doctorAvailabilityService;
     private final UserService userService;
 
     // Create a doctor, map any specialties, and optionally create their login - all in one
@@ -42,7 +45,30 @@ public class DoctorService {
         Doctor doctor = doctorRepository.save(buildDoctor(request, doctorUtils.generateDoctorCode()));
         assignSpecialtiesIfAny(doctor.getId(), request.getSpecialtyIds());
         createLoginIfAny(doctor.getId(), request.getLogin());
+        createDefaultAvailityTime(doctor.getId());
         return DoctorUtils.mapToDoctorResponse(doctor);
+    }
+
+    private void createDefaultAvailityTime(Integer doctorId) {
+        List<DoctorAvailabilityRequest> defaultAvailability = Arrays.stream(
+                        new DayOfWeek[]{
+                                DayOfWeek.MONDAY,
+                                DayOfWeek.TUESDAY,
+                                DayOfWeek.WEDNESDAY,
+                                DayOfWeek.THURSDAY,
+                                DayOfWeek.FRIDAY
+                        })
+                .map(day -> new DoctorAvailabilityRequest(
+                        day,
+                        LocalTime.of(9, 0),
+                        LocalTime.of(18, 0),
+                        LocalTime.of(13, 0),
+                        LocalTime.of(14, 0)
+                ))
+                .toList();
+
+        CreateDoctorAvailabilityRequest request = CreateDoctorAvailabilityRequest.builder().availability(defaultAvailability).build();
+        doctorAvailabilityService.createOrUpdateDoctorAvailability(doctorId, request);
     }
 
     private Doctor buildDoctor(CreateDoctorRequest r, String code) {
@@ -61,8 +87,7 @@ public class DoctorService {
 
     private void createLoginIfAny(Integer doctorId, PortalLoginRequest login) {
         if (login != null) {
-            userService.create(new CreateUserRequest(
-                    login.username(), login.password(), login.roleId(), doctorId, null, true));
+            userService.create(new CreateUserRequest(login.username(), login.password(), login.roleId(), doctorId, null, true));
         }
     }
 
@@ -70,16 +95,32 @@ public class DoctorService {
         if(doctorId!=null){
                 Optional<Doctor> doctorOptional = doctorRepository.findById(doctorId);
                 if (doctorOptional.isEmpty()) {return Page.empty(pageable);}
-                DoctorResponse response = DoctorUtils.mapToDoctorResponse(doctorOptional.get());
-                return new PageImpl<>(List.of(response), pageable, 1);
+                return new PageImpl<>(List.of(withSpecialties(doctorOptional.get())), pageable, 1);
             }
 
         Page<Doctor> doctors = doctorRepository.findAll(
                 DoctorSpecification.search(doctorFilterDto,search),
                 pageable
         );
-        return doctors.map(DoctorUtils::mapToDoctorResponse);
+        List<Integer> ids = doctors.getContent().stream().map(Doctor::getId).toList();
+        Map<Integer, List<String>> byDoctor = doctorSpecialtyService.specialtyNamesByDoctorIds(ids);
+        return doctors.map((d) -> mapWithSpecialties(d, byDoctor.getOrDefault(d.getId(), List.of())));
 
+    }
+
+    // Map a doctor to its response and attach its specialty names.
+    private DoctorResponse mapWithSpecialties(Doctor doctor, List<String> specialties) {
+        DoctorResponse response = DoctorUtils.mapToDoctorResponse(doctor);
+        response.setSpecialties(specialties);
+        return response;
+    }
+
+    // Single-doctor variant: resolve its specialty names, then map.
+    private DoctorResponse withSpecialties(Doctor doctor) {
+        List<String> names = doctorSpecialtyService
+                .specialtyNamesByDoctorIds(List.of(doctor.getId()))
+                .getOrDefault(doctor.getId(), List.of());
+        return mapWithSpecialties(doctor, names);
     }
 
     public void deleteDoctorById(Integer id) {

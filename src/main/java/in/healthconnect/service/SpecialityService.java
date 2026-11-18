@@ -2,19 +2,25 @@ package in.healthconnect.service;
 
 import in.healthconnect.dto.request.CreateSpecialtyRequest;
 import in.healthconnect.dto.response.SpecialtyResponse;
+import in.healthconnect.entity.DoctorSpecialtyMap;
 import in.healthconnect.entity.Specialty;
+import in.healthconnect.repository.DoctorSpecialtyRepository;
 import in.healthconnect.repository.SpecialityRepository;
 import in.healthconnect.utils.SpecialityUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class SpecialityService {
 
     private  final SpecialityRepository  specialityRepository;
+    private final DoctorSpecialtyRepository doctorSpecialtyRepository;
 
     public SpecialtyResponse createSpeciality(
             CreateSpecialtyRequest createSpecialtyRequest) {
@@ -57,8 +63,11 @@ public class SpecialityService {
         return SpecialityUtils.mapToSpecialityResponse(specialty1);
     }
 
+    @Transactional
     public void deleteSpeciality(Integer specialityId) {
         Specialty specialty = specialityRepository.findById(specialityId).orElseThrow(() -> new IllegalArgumentException("specialityId is not exist with id " + specialityId));
+        List<DoctorSpecialtyMap> existingAssociations = doctorSpecialtyRepository.findBySpecialtyId(specialityId);
+        doctorSpecialtyRepository.deleteAll(existingAssociations);
         specialityRepository.delete(specialty);
     }
 }
