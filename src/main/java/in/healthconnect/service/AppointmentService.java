@@ -108,8 +108,7 @@ public class AppointmentService {
         // Only a live appointment can be moved: a cancelled slot is back on offer and a
         // completed visit has already happened.
         if (appointment.getStatus() != AppointmentStatus.SCHEDULED) {
-            throw new AppointmentConflictException(
-                    "An appointment that is " + appointment.getStatus() + " cannot be moved.");
+            throw new AppointmentConflictException("An appointment that is " + appointment.getStatus() + " cannot be moved.");
         }
 
         Doctor doctor = doctorRepository.findActiveDoctorForUpdate(request.getDoctorId()).orElseThrow(() ->
@@ -163,7 +162,7 @@ public class AppointmentService {
             AppointmentStatus.COMPLETED, EnumSet.noneOf(AppointmentStatus.class),
             AppointmentStatus.CANCELLED, EnumSet.noneOf(AppointmentStatus.class));
 
-    private void changeStatus(Appointment appointment, AppointmentStatus target) {
+    public void changeStatus(Appointment appointment, AppointmentStatus target) {
 
         Set<AppointmentStatus> allowed = ALLOWED.get(appointment.getStatus());
 

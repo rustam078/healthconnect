@@ -4,10 +4,7 @@ import in.healthconnect.entity.Appointment;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
@@ -132,4 +129,24 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     // cross-doctor history view.
     @EntityGraph(attributePaths = {"doctor", "patient"})
     List<Appointment> findByPatientIdOrderByAppointmentDateDescStartTimeDesc(Integer patientId);
+
+    @Modifying
+    @Query("""
+        UPDATE Appointment a
+        SET a.status = :noShow
+        WHERE a.status = :scheduled
+        AND (
+            a.appointmentDate < :today
+            OR (
+                a.appointmentDate = :today
+                AND a.endTime < :currentTime
+            )
+        )
+    """)
+    int markMissedAppointments(
+            @Param("scheduled") AppointmentStatus scheduled,
+            @Param("noShow") AppointmentStatus noShow,
+            @Param("today") LocalDate today,
+            @Param("currentTime") LocalTime currentTime
+    );
 }

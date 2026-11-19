@@ -231,7 +231,7 @@ public class DoctorPortalService {
         if (!appointment.getDoctor().getId().equals(currentUser.requireDoctorId())) {
             throw new ResourceNotFoundException("Appointment not found: " + appointmentId);
         }
-        appointment.setStatus(AppointmentStatus.COMPLETED);
+        appointmentService.changeStatus(appointment, AppointmentStatus.COMPLETED);
         appointmentRepository.save(appointment);
     }
 
