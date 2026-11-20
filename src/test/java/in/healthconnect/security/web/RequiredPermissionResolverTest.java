@@ -88,6 +88,12 @@ class RequiredPermissionResolverTest {
     }
 
     @Test
+    void readingSpecialtiesOnlyNeedsALogin() {
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/specialties"));
+        assertEquals("SPECIALTIES_CREATE", required("POST", "/api/v1/specialties"));
+    }
+
+    @Test
     void fileApiOnlyNeedsALogin() {
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("POST", "/api/v1/files"));
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/files/42"));

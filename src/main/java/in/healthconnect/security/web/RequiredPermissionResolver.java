@@ -46,7 +46,10 @@ public class RequiredPermissionResolver {
             new Override("POST", "/api/v1/files/**", AUTHENTICATED),
             new Override("GET", "/api/v1/files/**", AUTHENTICATED),
             // Any logged-in user may set their own profile photo (not a USERS admin action).
-            new Override("POST", "/api/v1/users/me/avatar", AUTHENTICATED));
+            new Override("POST", "/api/v1/users/me/avatar", AUTHENTICATED),
+            // Specialties are shared reference data: any logged-in role may read the list
+            // (create/update/delete stay SPECIALTIES_* admin by convention).
+            new Override("GET", "/api/v1/specialties/**", AUTHENTICATED));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);
