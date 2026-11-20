@@ -6,6 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,6 +20,7 @@ import java.util.List;
 
 // Reads the Bearer token on each request and, if valid, puts the user + authorities in the
 // security context. It only IDENTIFIES the user - the authorization decision is made centrally.
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -32,6 +34,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = bearerToken(request);
         if (token != null && jwtService.isValid(token)) {
             setAuthentication(token, request);
+            log.debug("[FLOW 1 · auth] {} {} -> user '{}' identified",
+                    request.getMethod(), request.getRequestURI(),
+                    SecurityContextHolder.getContext().getAuthentication().getName());
+        } else {
+            log.debug("[FLOW 1 · auth] {} {} -> no valid token (anonymous)",
+                    request.getMethod(), request.getRequestURI());
         }
         chain.doFilter(request, response);
     }

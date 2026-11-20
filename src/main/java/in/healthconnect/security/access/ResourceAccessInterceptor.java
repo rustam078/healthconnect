@@ -4,15 +4,18 @@ import in.healthconnect.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.HandlerMapping;
 
 import java.util.Map;
+import java.util.Optional;
 
 // Runs after Spring Security (which already checked the role's permission). For routes listed
 // in ResourceAccessResolver it checks the logged-in user may touch THIS row - the id is read
 // from the parsed URL, never trusted blindly. Unlisted routes pass straight through.
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ResourceAccessInterceptor implements HandlerInterceptor {
@@ -22,8 +25,17 @@ public class ResourceAccessInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        resolver.resolve(request.getMethod(), request.getRequestURI())
-                .ifPresent(rule -> guard.enforce(rule.type(), idFrom(request, rule.idVariable()), rule.access()));
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
+        Optional<ResourceAccessResolver.Rule> rule = resolver.resolve(method, uri);
+        if (rule.isEmpty()) {
+            log.debug("[FLOW 3 · resource] {} {} -> no row-level guard (permission tier only)", method, uri);
+            return true;
+        }
+        ResourceAccessResolver.Rule matched = rule.get();
+        Integer id = idFrom(request, matched.idVariable());
+        log.debug("[FLOW 3 · resource] {} {} -> {} guard, id={}, {}", method, uri, matched.type(), id, matched.access());
+        guard.enforce(matched.type(), id, matched.access());
         return true;
     }
 

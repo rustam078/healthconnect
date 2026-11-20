@@ -1,6 +1,7 @@
 package in.healthconnect.security.web;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -14,6 +15,7 @@ import java.util.function.Supplier;
 
 // The single place that authorizes every request. It asks the resolver what the request
 // needs, then checks the logged-in user's authorities. No endpoint carries its own rule.
+@Slf4j
 @Component
 public class PermissionAuthorizationManager implements AuthorizationManager<RequestAuthorizationContext> {
 
@@ -34,6 +36,13 @@ public class PermissionAuthorizationManager implements AuthorizationManager<Requ
     // The decision itself, kept simple so it can be unit-tested without a web request.
     public boolean isGranted(Authentication authentication, String method, String path) {
         Optional<String> required = resolver.requiredAuthority(method, path);
+        boolean granted = decide(authentication, required);
+        log.debug("[FLOW 2 · permission] {} {} -> needs {}, granted={}",
+                method, path, required.orElse("<unmapped→deny>"), granted);
+        return granted;
+    }
+
+    private boolean decide(Authentication authentication, Optional<String> required) {
         if (required.isEmpty() || !isAuthenticated(authentication)) {
             return false;
         }

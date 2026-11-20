@@ -2,6 +2,7 @@ package in.healthconnect.security.access;
 
 import in.healthconnect.portal.AccessScope;
 import in.healthconnect.portal.CurrentUserProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 // One entry point the interceptor calls: resolve the caller's scope, then run the matching
 // resource guard's read or write check. All per-row ownership logic funnels through here.
+@Slf4j
 @Component
 public class ResourceAccessGuard {
 
@@ -34,5 +36,6 @@ public class ResourceAccessGuard {
         } else {
             guard.assertEditable(id, scope);
         }
+        log.debug("[FLOW 3 · resource] {} {} id={} allowed (scope={})", access, type, id, scope.scope());
     }
 }
