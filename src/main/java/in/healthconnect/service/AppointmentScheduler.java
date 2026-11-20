@@ -20,7 +20,7 @@ public class AppointmentScheduler {
     private final AppointmentRepository appointmentRepository;
     private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
 
-    @Scheduled(cron = "0 0 23 * * *", zone = "Asia/Kolkata")
+    @Scheduled(cron = "0 10 10 * * *", zone = "Asia/Kolkata")
     @Transactional
     public void markNoShowAppointments() {
 

@@ -38,8 +38,21 @@ class ResourceAccessResolverTest {
     }
 
     @Test
+    void detailIsGuardedAsAppointmentRead() {
+        ResourceAccessResolver.Rule rule = resolver.resolve("GET", "/api/v1/appointments/7/detail").orElseThrow();
+        assertEquals(ResourceType.APPOINTMENT, rule.type());
+        assertEquals("id", rule.idVariable());
+        assertEquals(Access.READ, rule.access());
+    }
+
+    @Test
     void queryStringIsIgnored() {
         assertTrue(resolver.resolve("PATCH", "/api/v1/appointments/7/status?status=COMPLETED").isPresent());
+    }
+
+    @Test
+    void appointmentListIsNotResourceScoped() {
+        assertTrue(resolver.resolve("GET", "/api/v1/appointments").isEmpty());
     }
 
     @Test

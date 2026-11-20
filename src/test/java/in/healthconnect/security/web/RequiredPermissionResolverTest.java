@@ -99,6 +99,12 @@ class RequiredPermissionResolverTest {
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/appointments/7/consultation/pdf"));
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("POST", "/api/v1/appointments/7/consultation"));
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("PATCH", "/api/v1/appointments/7/status"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/appointments/7/detail"));
+    }
+
+    @Test
+    void appointmentListNeedsAppointmentsView() {
+        assertEquals("APPOINTMENTS_VIEW", required("GET", "/api/v1/appointments"));
     }
 
     @Test

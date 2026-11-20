@@ -1,7 +1,11 @@
 package in.healthconnect.service;
 
+import in.healthconnect.dto.request.AppointmentSearchFilter;
 import in.healthconnect.dto.request.CreateAppointmentRequest;
 import in.healthconnect.dto.response.*;
+import in.healthconnect.portal.HistoryDetailResponse;
+import in.healthconnect.report.ReportService;
+import in.healthconnect.repository.spec.AppointmentSpecifications;
 import in.healthconnect.entity.*;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.exception.AppointmentConflictException;
@@ -34,6 +38,35 @@ public class AppointmentService {
     private final DoctorRepository doctorRepository;
     private final AppointmentRepository appointmentRepository;
     private final DoctorAvailabilityRepository doctorAvailabilityRepository;
+    private final ConsultationService consultationService;
+    private final TestOrderService testOrderService;
+    private final ReportService reportService;
+
+    // Admin appointment search: every doctor's appointments, filtered and paginated.
+    @Transactional
+    public Page<AppointmentResponse> search(AppointmentSearchFilter filter, Pageable pageable) {
+        return appointmentRepository.findAll(AppointmentSpecifications.fromFilter(filter), pageable)
+                .map(AppointmentUtils::mapToAppointmentResponse);
+    }
+
+    // One appointment's full record (consultation + medicines, ordered tests, reports) for the
+    // detail view. Access is already checked by the resource guard.
+    @Transactional
+    public HistoryDetailResponse detail(Integer appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found: " + appointmentId));
+        return new HistoryDetailResponse(appointment.getId(), appointment.getAppointmentDate(),
+                appointment.getStartTime(), doctorFullName(appointment.getDoctor()),
+                consultationService.getByAppointmentIdOrNull(appointmentId),
+                testOrderService.listOrdered(appointmentId),
+                reportService.listByAppointment(appointmentId));
+    }
+
+    // Doctor's display name, blank-safe, for the detail header.
+    private String doctorFullName(Doctor doctor) {
+        return ((doctor.getFirstName() == null ? "" : doctor.getFirstName()) + " "
+                + (doctor.getLastName() == null ? "" : doctor.getLastName())).trim();
+    }
 
     @Transactional
     public AppointmentResponse createAppointment(CreateAppointmentRequest request) {

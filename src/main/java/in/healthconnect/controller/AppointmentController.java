@@ -1,8 +1,10 @@
 package in.healthconnect.controller;
 
+import in.healthconnect.dto.request.AppointmentSearchFilter;
 import in.healthconnect.dto.request.CreateAppointmentRequest;
 import in.healthconnect.entity.enums.AppointmentStatus;
 import in.healthconnect.dto.response.AppointmentResponse;
+import in.healthconnect.portal.HistoryDetailResponse;
 import in.healthconnect.service.AppointmentService;
 import in.healthconnect.wrapper.ApiResponse;
 import jakarta.validation.Valid;
@@ -29,6 +31,24 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<AppointmentResponse>> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
         AppointmentResponse response = appointmentService.createAppointment(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Appointment booked successfully"));
+    }
+
+    // Admin view of every doctor's appointments: filtered (doctor, status, date range, patient,
+    // appointment id) and paginated. Rows carry appointment-level info; open one for its detail.
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<AppointmentResponse>>> search(AppointmentSearchFilter filter,
+                     @PageableDefault(page = 0, size = 20, sort = {"appointmentDate", "startTime"}, direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<AppointmentResponse> response = appointmentService.search(filter, pageable);
+        return ResponseEntity.ok(ApiResponse.success(response, "Appointments fetched successfully"));
+    }
+
+    // One appointment's full record - consultation (with medicines), ordered tests and reports.
+    @GetMapping("/{id}/detail")
+    public ResponseEntity<ApiResponse<HistoryDetailResponse>> detail(@PathVariable Integer id) {
+
+        HistoryDetailResponse response = appointmentService.detail(id);
+        return ResponseEntity.ok(ApiResponse.success(response, "Appointment detail fetched successfully"));
     }
 
 

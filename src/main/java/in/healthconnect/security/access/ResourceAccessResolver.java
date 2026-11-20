@@ -22,7 +22,9 @@ public class ResourceAccessResolver {
             new Rule("GET", "/api/v1/appointments/*/consultation/pdf", ResourceType.APPOINTMENT, "appointmentId", Access.READ),
             new Rule("POST", "/api/v1/appointments/*/consultation", ResourceType.APPOINTMENT, "appointmentId", Access.WRITE),
             // Changing a visit's status (e.g. COMPLETED) is a write on that appointment.
-            new Rule("PATCH", "/api/v1/appointments/*/status", ResourceType.APPOINTMENT, "id", Access.WRITE));
+            new Rule("PATCH", "/api/v1/appointments/*/status", ResourceType.APPOINTMENT, "id", Access.WRITE),
+            // The full visit record (consultation, tests, reports) is a read on that appointment.
+            new Rule("GET", "/api/v1/appointments/*/detail", ResourceType.APPOINTMENT, "id", Access.READ));
 
     // The matching rule for this request, if the route is resource-scoped.
     public Optional<Rule> resolve(String method, String path) {
