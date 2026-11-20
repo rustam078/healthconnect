@@ -94,6 +94,14 @@ class RequiredPermissionResolverTest {
     }
 
     @Test
+    void consultationAndStatusOnlyNeedALogin() {
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/appointments/7/consultation"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/appointments/7/consultation/pdf"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("POST", "/api/v1/appointments/7/consultation"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("PATCH", "/api/v1/appointments/7/status"));
+    }
+
+    @Test
     void fileApiOnlyNeedsALogin() {
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("POST", "/api/v1/files"));
         assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/files/42"));

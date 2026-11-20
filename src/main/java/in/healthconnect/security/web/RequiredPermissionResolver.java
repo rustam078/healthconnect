@@ -49,7 +49,13 @@ public class RequiredPermissionResolver {
             new Override("POST", "/api/v1/users/me/avatar", AUTHENTICATED),
             // Specialties are shared reference data: any logged-in role may read the list
             // (create/update/delete stay SPECIALTIES_* admin by convention).
-            new Override("GET", "/api/v1/specialties/**", AUTHENTICATED));
+            new Override("GET", "/api/v1/specialties/**", AUTHENTICATED),
+            // A consultation and a visit's status are reached by the visit's own patient/doctor
+            // too, not only admins; the resource guard decides who, so here they need only a login.
+            new Override("GET", "/api/v1/appointments/*/consultation", AUTHENTICATED),
+            new Override("GET", "/api/v1/appointments/*/consultation/pdf", AUTHENTICATED),
+            new Override("POST", "/api/v1/appointments/*/consultation", AUTHENTICATED),
+            new Override("PATCH", "/api/v1/appointments/*/status", AUTHENTICATED));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);

@@ -66,6 +66,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     // Does this doctor have any appointment with this patient? (ownership for history/reports)
     boolean existsByDoctorIdAndPatientId(Integer doctorId, Integer patientId);
 
+    // Cheap ownership checks for the resource guard (existence only, no entity load).
+    boolean existsByIdAndPatientId(Integer id, Integer patientId);
+
+    boolean existsByIdAndDoctorId(Integer id, Integer doctorId);
+
+    // The patient on an appointment, to check a doctor's department view without loading the row.
+    @Query("select a.patient.id from Appointment a where a.id = :id")
+    Optional<Integer> findPatientIdByAppointmentId(@Param("id") Integer id);
+
     // Distinct patients seen by any doctor sharing one of these specialties (a "department").
     @Query("""
             SELECT DISTINCT a.patient.id
