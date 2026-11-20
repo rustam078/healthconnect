@@ -109,17 +109,6 @@ public class CustomerPortalService {
         appointmentService.cancelAppointment(appointmentId);
     }
 
-    @Transactional(readOnly = true)
-    public ConsultationResponse consultation(Integer appointmentId) {
-        assertMyAppointment(appointmentId);
-        return consultationService.getByAppointmentId(appointmentId);
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] consultationPdf(Integer appointmentId) {
-        assertMyAppointment(appointmentId);
-        return consultationPdfService.renderByAppointmentId(appointmentId);
-    }
 
     @Transactional(readOnly = true)
     public List<ReportResponse> myReports() {

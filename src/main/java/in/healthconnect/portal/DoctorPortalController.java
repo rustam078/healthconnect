@@ -102,27 +102,6 @@ public class DoctorPortalController {
         return ResponseEntity.ok(ApiResponse.success("Referral recorded"));
     }
 
-    @PostMapping("/appointments/{appointmentId}/consultation")
-    public ResponseEntity<ApiResponse<ConsultationResponse>> writeConsultation(
-            @PathVariable Integer appointmentId, @RequestBody @Valid CreateConsultationRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(service.writeConsultation(appointmentId, request), "Saved"));
-    }
-
-    @GetMapping("/appointments/{appointmentId}/consultation")
-    public ResponseEntity<ApiResponse<ConsultationResponse>> consultation(@PathVariable Integer appointmentId) {
-        return ResponseEntity.ok(ApiResponse.success(service.consultation(appointmentId)));
-    }
-
-    @PutMapping("/appointments/{appointmentId}/complete")
-    public ResponseEntity<ApiResponse<String>> complete(@PathVariable Integer appointmentId) {
-        service.completeAppointment(appointmentId);
-        return ResponseEntity.ok(ApiResponse.success("Appointment marked completed"));
-    }
-
-    @GetMapping("/appointments/{appointmentId}/consultation/pdf")
-    public ResponseEntity<byte[]> consultationPdf(@PathVariable Integer appointmentId) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(service.consultationPdf(appointmentId));
-    }
 
     @GetMapping("/patients")
     public ResponseEntity<ApiResponse<List<PatientResponse>>> departmentPatients() {

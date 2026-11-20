@@ -53,15 +53,6 @@ public class CustomerPortalController {
         return ResponseEntity.ok(ApiResponse.success("Appointment cancelled"));
     }
 
-    @GetMapping("/appointments/{id}/consultation")
-    public ResponseEntity<ApiResponse<ConsultationResponse>> consultation(@PathVariable Integer id) {
-        return ResponseEntity.ok(ApiResponse.success(service.consultation(id)));
-    }
-
-    @GetMapping("/appointments/{id}/consultation/pdf")
-    public ResponseEntity<byte[]> consultationPdf(@PathVariable Integer id) {
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF).body(service.consultationPdf(id));
-    }
 
     @GetMapping("/reports")
     public ResponseEntity<ApiResponse<List<ReportResponse>>> myReports() {

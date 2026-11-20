@@ -190,11 +190,6 @@ public class DoctorPortalService {
                 appointment.getStartTime(), appointment.getEndTime(), appointment.getStatus());
     }
 
-    @Transactional
-    public ConsultationResponse writeConsultation(Integer appointmentId, CreateConsultationRequest request) {
-        assertMyAppointment(appointmentId);
-        return consultationService.createConsultation(appointmentId, request);
-    }
 
     // Header for the consultation workspace: the appointment + the patient card details.
     @Transactional(readOnly = true)
@@ -219,28 +214,6 @@ public class DoctorPortalService {
     }
 
     // Mark one of the doctor's own appointments as completed.
-    @Transactional
-    public void completeAppointment(Integer appointmentId) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found: " + appointmentId));
-        if (!appointment.getDoctor().getId().equals(currentUser.requireDoctorId())) {
-            throw new ResourceNotFoundException("Appointment not found: " + appointmentId);
-        }
-        appointmentService.changeStatus(appointment, AppointmentStatus.COMPLETED);
-        appointmentRepository.save(appointment);
-    }
-
-    @Transactional(readOnly = true)
-    public ConsultationResponse consultation(Integer appointmentId) {
-        assertMyAppointment(appointmentId);
-        return consultationService.getByAppointmentId(appointmentId);
-    }
-
-    @Transactional(readOnly = true)
-    public byte[] consultationPdf(Integer appointmentId) {
-        assertMyAppointment(appointmentId);
-        return consultationPdfService.renderByAppointmentId(appointmentId);
-    }
 
     // Every patient in the doctor's department (read scope).
     @Transactional(readOnly = true)
