@@ -115,10 +115,6 @@ public class CustomerPortalService {
         return reportService.listByPatient(currentUser.requirePatientId());
     }
 
-    public ReportService.ReportFile reportFile(Integer reportId) {
-        return reportService.getFileForPatient(reportId, currentUser.requirePatientId());
-    }
-
     private List<LocalTime> slotsFor(Integer doctorId, DayOfWeek day, LocalDate date, LocalTime notBefore) {
         List<DoctorAvailability> windows = availabilityRepository.findByDoctorIdAndDayOfWeek(doctorId, day);
         if (windows.isEmpty()) {

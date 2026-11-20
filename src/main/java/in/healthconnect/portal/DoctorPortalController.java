@@ -68,19 +68,9 @@ public class DoctorPortalController {
                 service.orderTests(appointmentId, request.labTestIds()), "Tests ordered"));
     }
 
-    @GetMapping("/appointments/{appointmentId}/tests")
-    public ResponseEntity<ApiResponse<List<OrderedTestResponse>>> orderedTests(@PathVariable Integer appointmentId) {
-        return ResponseEntity.ok(ApiResponse.success(service.orderedTests(appointmentId)));
-    }
-
     @GetMapping("/patients/{patientId}/full-history")
     public ResponseEntity<ApiResponse<List<HistoryItemResponse>>> fullHistory(@PathVariable Integer patientId) {
         return ResponseEntity.ok(ApiResponse.success(service.fullHistory(patientId)));
-    }
-
-    @GetMapping("/history/{appointmentId}")
-    public ResponseEntity<ApiResponse<HistoryDetailResponse>> historyDetail(@PathVariable Integer appointmentId) {
-        return ResponseEntity.ok(ApiResponse.success(service.historyDetail(appointmentId)));
     }
 
     @GetMapping("/available-slots")
@@ -108,11 +98,6 @@ public class DoctorPortalController {
         return ResponseEntity.ok(ApiResponse.success(service.departmentPatients()));
     }
 
-    @GetMapping("/patients/{patientId}")
-    public ResponseEntity<ApiResponse<PatientDetailResponse>> patientProfile(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(ApiResponse.success(service.patientProfile(patientId)));
-    }
-
     @GetMapping("/patients/{patientId}/history")
     public ResponseEntity<ApiResponse<List<AppointmentResponse>>> patientHistory(@PathVariable Integer patientId) {
         return ResponseEntity.ok(ApiResponse.success(service.patientHistory(patientId)));
@@ -121,10 +106,5 @@ public class DoctorPortalController {
     @GetMapping("/patients/{patientId}/reports")
     public ResponseEntity<ApiResponse<List<ReportResponse>>> patientReports(@PathVariable Integer patientId) {
         return ResponseEntity.ok(ApiResponse.success(service.patientReports(patientId)));
-    }
-
-    @GetMapping("/patients/{patientId}/reports/{reportId}/file")
-    public ResponseEntity<byte[]> patientReportFile(@PathVariable Integer patientId, @PathVariable Integer reportId) {
-        return ReportController.inline(service.patientReportFile(patientId, reportId));
     }
 }

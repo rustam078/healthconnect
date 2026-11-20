@@ -58,9 +58,4 @@ public class CustomerPortalController {
     public ResponseEntity<ApiResponse<List<ReportResponse>>> myReports() {
         return ResponseEntity.ok(ApiResponse.success(service.myReports()));
     }
-
-    @GetMapping("/reports/{id}/file")
-    public ResponseEntity<byte[]> reportFile(@PathVariable Integer id) {
-        return ReportController.inline(service.reportFile(id));
-    }
 }

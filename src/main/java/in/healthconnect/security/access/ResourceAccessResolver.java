@@ -24,7 +24,13 @@ public class ResourceAccessResolver {
             // Changing a visit's status (e.g. COMPLETED) is a write on that appointment.
             new Rule("PATCH", "/api/v1/appointments/*/status", ResourceType.APPOINTMENT, "id", Access.WRITE),
             // The full visit record (consultation, tests, reports) is a read on that appointment.
-            new Rule("GET", "/api/v1/appointments/*/detail", ResourceType.APPOINTMENT, "id", Access.READ));
+            new Rule("GET", "/api/v1/appointments/*/detail", ResourceType.APPOINTMENT, "id", Access.READ),
+            // A patient's full profile - the patient themselves, their department's doctors, or admin.
+            new Rule("GET", "/api/v1/patients/*/details", ResourceType.PATIENT, "id", Access.READ),
+            // Tests ordered on a visit are a read on that appointment.
+            new Rule("GET", "/api/v1/reports/appointments/*/tests", ResourceType.APPOINTMENT, "appointmentId", Access.READ),
+            // A report's file is scoped to the patient the report belongs to.
+            new Rule("GET", "/api/v1/reports/*/file", ResourceType.REPORT, "id", Access.READ));
 
     // The matching rule for this request, if the route is resource-scoped.
     public Optional<Rule> resolve(String method, String path) {

@@ -103,6 +103,13 @@ class RequiredPermissionResolverTest {
     }
 
     @Test
+    void sharedScopedReadsOnlyNeedALogin() {
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/patients/7/details"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/reports/appointments/7/tests"));
+        assertEquals(RequiredPermissionResolver.AUTHENTICATED, required("GET", "/api/v1/reports/7/file"));
+    }
+
+    @Test
     void appointmentListNeedsAppointmentsView() {
         assertEquals("APPOINTMENTS_VIEW", required("GET", "/api/v1/appointments"));
     }

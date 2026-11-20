@@ -58,7 +58,12 @@ public class RequiredPermissionResolver {
             new Override("PATCH", "/api/v1/appointments/*/status", AUTHENTICATED),
             // The full visit record is read by the visit's patient/doctor or an admin; the
             // resource guard decides who, so the route itself needs only a login.
-            new Override("GET", "/api/v1/appointments/*/detail", AUTHENTICATED));
+            new Override("GET", "/api/v1/appointments/*/detail", AUTHENTICATED),
+            // A patient's profile, a visit's ordered tests and a report file are reached by the
+            // patient/doctor they belong to, not only admins; the resource guard scopes them.
+            new Override("GET", "/api/v1/patients/*/details", AUTHENTICATED),
+            new Override("GET", "/api/v1/reports/appointments/*/tests", AUTHENTICATED),
+            new Override("GET", "/api/v1/reports/*/file", AUTHENTICATED));
 
     public Optional<String> requiredAuthority(String method, String path) {
         String cleanPath = stripQuery(path);

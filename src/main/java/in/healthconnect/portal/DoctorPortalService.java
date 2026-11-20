@@ -122,19 +122,6 @@ public class DoctorPortalService {
                 .stream().map(this::toHistoryItem).toList();
     }
 
-    // The full record of one past visit (consultation + tests + reports), for any visit of a
-    // patient the doctor may view - even if another doctor saw them.
-    @Transactional(readOnly = true)
-    public HistoryDetailResponse historyDetail(Integer appointmentId) {
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found: " + appointmentId));
-        patientAccessPolicy.assertCanView(appointment.getPatient().getId());
-        return new HistoryDetailResponse(appointment.getId(), appointment.getAppointmentDate(),
-                appointment.getStartTime(), doctorName(appointment.getDoctor()),
-                consultationService.getByAppointmentIdOrNull(appointmentId),
-                testOrderService.listOrdered(appointmentId), reportService.listByAppointment(appointmentId));
-    }
-
     private HistoryItemResponse toHistoryItem(Appointment appointment) {
         Consultation consultation = consultationRepository.findByAppointmentId(appointment.getId()).orElse(null);
         int testCount = orderedTestRepository.findByAppointmentIdOrderByIdAsc(appointment.getId()).size();
@@ -159,12 +146,6 @@ public class DoctorPortalService {
     public List<OrderedTestResponse> orderTests(Integer appointmentId, List<Integer> labTestIds) {
         assertMyAppointment(appointmentId);
         return testOrderService.order(appointmentId, labTestIds);
-    }
-
-    @Transactional(readOnly = true)
-    public List<OrderedTestResponse> orderedTests(Integer appointmentId) {
-        assertMyAppointment(appointmentId);
-        return testOrderService.listOrdered(appointmentId);
     }
 
     public Page<AppointmentResponse> mySchedule(LocalDate date, Pageable pageable) {
@@ -222,13 +203,6 @@ public class DoctorPortalService {
         return ids == null ? List.of() : patientService.findSummaries(ids);
     }
 
-    // One patient's profile, if the doctor's scope lets them see this patient.
-    @Transactional(readOnly = true)
-    public PatientDetailResponse patientProfile(Integer patientId) {
-        patientAccessPolicy.assertCanView(patientId);
-        return patientService.getPatientDetails(patientId);
-    }
-
     @Transactional(readOnly = true)
     public List<AppointmentResponse> patientHistory(Integer patientId) {
         patientAccessPolicy.assertCanView(patientId);
@@ -241,11 +215,6 @@ public class DoctorPortalService {
     public List<ReportResponse> patientReports(Integer patientId) {
         patientAccessPolicy.assertCanView(patientId);
         return reportService.listByPatient(patientId);
-    }
-
-    public ReportService.ReportFile patientReportFile(Integer patientId, Integer reportId) {
-        patientAccessPolicy.assertCanView(patientId);
-        return reportService.getFileForPatient(reportId, patientId);
     }
 
     private Appointment assertMyAppointment(Integer appointmentId) {
