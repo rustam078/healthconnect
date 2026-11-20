@@ -28,10 +28,6 @@ public class CustomerPortalController {
 
     private final CustomerPortalService service;
 
-    @GetMapping("/specialties")
-    public ResponseEntity<ApiResponse<List<SpecialtyResponse>>> specialties() {
-        return ResponseEntity.ok(ApiResponse.success(service.specialties()));
-    }
 
     @GetMapping("/available-doctors")
     public ResponseEntity<ApiResponse<List<AvailableDoctorResponse>>> availableDoctors(

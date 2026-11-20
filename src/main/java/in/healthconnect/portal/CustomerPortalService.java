@@ -52,11 +52,6 @@ public class CustomerPortalService {
     private final ReportService reportService;
     private final SpecialityService specialityService;
 
-    // Specialties for the patient's doctor search (portal-gated, so no admin permission needed).
-    @Transactional(readOnly = true)
-    public List<SpecialtyResponse> specialties() {
-        return specialityService.getSpecialties(null, null, PageRequest.of(0, 200)).getContent();
-    }
 
     // Availability-first: only doctors with an open slot on that date for that specialty.
     @Transactional(readOnly = true)

@@ -8,6 +8,8 @@ import in.healthconnect.security.entity.User;
 import in.healthconnect.security.model.AppModule;
 import in.healthconnect.security.model.PermissionAction;
 import in.healthconnect.security.repository.UserRepository;
+import in.healthconnect.repository.DoctorRepository;
+import in.healthconnect.repository.PatientRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,9 +26,12 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
+    private final DoctorRepository doctorRepository = mock(DoctorRepository.class);
+    private final PatientRepository patientRepository = mock(PatientRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     private final JwtService jwtService = mock(JwtService.class);
-    private final AuthService service = new AuthService(userRepository, passwordEncoder, jwtService);
+    private final AuthService service =
+            new AuthService(userRepository, doctorRepository, patientRepository, passwordEncoder, jwtService);
 
     private User user(boolean enabled) {
         Role role = Role.builder().name("ADMIN")

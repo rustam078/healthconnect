@@ -95,11 +95,6 @@ public class DoctorPortalController {
         return ResponseEntity.ok(ApiResponse.success(service.scheduleFollowUp(appointmentId, request), "Follow-up scheduled"));
     }
 
-    @GetMapping("/specialties")
-    public ResponseEntity<ApiResponse<List<SpecialtyResponse>>> specialties() {
-        return ResponseEntity.ok(ApiResponse.success(service.specialties()));
-    }
-
     @PostMapping("/appointments/{appointmentId}/referral")
     public ResponseEntity<ApiResponse<String>> refer(
             @PathVariable Integer appointmentId, @RequestBody @Valid ReferRequest request) {

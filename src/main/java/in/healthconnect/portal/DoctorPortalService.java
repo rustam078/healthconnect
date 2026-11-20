@@ -97,11 +97,6 @@ public class DoctorPortalService {
         return created;
     }
 
-    // Specialties the doctor can refer to.
-    @Transactional(readOnly = true)
-    public List<SpecialtyResponse> specialties() {
-        return specialityService.getSpecialties(null, null, PageRequest.of(0, 200)).getContent();
-    }
 
     // Record a referral of this visit's patient to a specialty.
     @Transactional

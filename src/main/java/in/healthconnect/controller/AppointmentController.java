@@ -27,9 +27,7 @@ public class AppointmentController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<AppointmentResponse>> createAppointment(@Valid @RequestBody CreateAppointmentRequest request) {
-
         AppointmentResponse response = appointmentService.createAppointment(request);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Appointment booked successfully"));
     }
 
@@ -38,7 +36,6 @@ public class AppointmentController {
     public ResponseEntity<ApiResponse<Page<AppointmentResponse>>> getAllAppointmentByDoctorId(@PathVariable Integer doctorId,
                      @RequestParam(required = false) String search,@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate appointmentDate,
                  @PageableDefault( page = 0, size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-
         Page<AppointmentResponse> response = appointmentService.getAllAppointmentsByDoctorId(doctorId, appointmentDate,pageable);
         return ResponseEntity.ok(ApiResponse.success(response, "Appointments fetched successfully"));
     }
